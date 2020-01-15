@@ -1,0 +1,20 @@
+# neobee
+Condition monitoring and data analytics for bee hives.
+
+## Goals of the project
+
+Condition monitoring of a bee hive. Tracking weight, temperatures and 
+maybe additional sensor data and pushing the data to an mqtt broker.
+
+The project consist of the folloeing hardware components:
+
+* Wemos D1 - ESP8266 based controller
+* HX711 24-Bit Analog-to-Digital Converter (ADC) 
+* Load cell from BOSCH
+* DS18B20 - OneWire digital temperature sensor from dallas
+
+## Libraries
+
+### HX711
+Information about the HX711 library can be found here: https://github.com/bogde/HX711
+
