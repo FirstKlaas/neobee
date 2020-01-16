@@ -17,9 +17,11 @@ The project consist of the folloeing hardware components:
 
 ### HX711
 Information about the HX711 library can be found here: https://github.com/bogde/HX711
+Tested with Version 0.7.2
 
 ### DS18B20
 Information about the DS18B20 library can be found here: https://github.com/milesburton/Arduino-Temperature-Control-Library
+Tested with Version 3.8.0
 
 ## Roadmap
 
@@ -27,7 +29,7 @@ Information about the DS18B20 library can be found here: https://github.com/mile
 
 MVP version. This will be the first working version to be used in the field. THis version will have no convenience functions for setting up the wifi connection or any other additional parameters. The following features will be available:
 
-* Calibrating the load cell
+* Calibrating the load cell (No convenience. More an explanation on how to do it.)
 * Reading the weight
 * Reading the inside temperature
 * Reading the outside temperature
