@@ -30,10 +30,6 @@ void NeoBeeTemperature::begin() {
   sensors.begin();
   delay(200);
   // Todo: Muss ich das noch machen, wenn ich einmal die Adressen gefunden habe?
-  bitWrite(m_ctx.flags, FLAG_T1_SET, sensors.getAddress(m_ctx.addr_inside, 0));
-  bitWrite(m_ctx.flags, FLAG_T2_SET, sensors.getAddress(m_ctx.addr_inside, 1));
-}
-
-bool NeoBeeTemperature::hasInsideSensorAddress() {
-  return bitRead(m_ctx.flags, FLAG_T1_SET) == 1;
+  bitWrite(m_ctx.flags, FLAG_ADDR_INSIDE_SET, sensors.getAddress(m_ctx.addr_inside, 0));
+  bitWrite(m_ctx.flags, FLAG_ADDR_OUTSIDE_SET, sensors.getAddress(m_ctx.addr_inside, 1));
 }

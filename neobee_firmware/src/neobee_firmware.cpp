@@ -28,8 +28,8 @@ const int DEEP_SLEEP_SECONDS = 30e6; // Equivalent to 30 seconds
 // for each load call and hx711 module combination
 // individually. This library has no support for
 // calibration. Check out the github page for more information.
-//const float SCALE_FACTOR = 21.8687258687f;
-const float SCALE_FACTOR = 21.66f;
+//const float scaleFactor = 21.8687258687f;
+const float scaleFactor = 21.66f;
 
 Context ctx;
 
@@ -82,7 +82,7 @@ void setup() {
   #endif
 
   delay(2000);
-  if (nbLoadCtx(ctx)) {
+  if (ctx.load()) {
     Serial.println("Context restored");
   } else {
     Serial.println("Context created");
@@ -101,9 +101,9 @@ void setup() {
     contextChanged = true;
   };
   if (contextChanged) {
-    nbSaveCtx(ctx);
+    ctx.save();
   }
-  nbPrintCtx(ctx); 
+  ctx.print(); 
   ESP.deepSleep(DEEP_SLEEP_SECONDS); 
 }
 
