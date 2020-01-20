@@ -32,7 +32,7 @@ void nbDeleteCtx(Context& ctx) {
   #ifdef DEBUG
   Serial.println("Deleting context");
   #endif
-  strncpy(ctx.magic_bytes, "\0\0\0\0\0\0\0\0", 7);
+  memset(ctx.magic_bytes, 0, 7);
   ctx.flags = 0;
   nbSaveCtx(ctx);  
 }
@@ -42,7 +42,7 @@ void nbResetCtx(Context& ctx) {
   Serial.println("Initialising context with defaults.");
   #endif
   strncpy(ctx.magic_bytes, "NEOBEE\0", 7);
-  strncpy(ctx.name, "No Name\0", 8);
+  memset(ctx.name, 0, 20);
   ctx.flags = 0;    
   ctx.SCALE_OFFSET = 0;
   ctx.SCALE_FACTOR = 1.f;
