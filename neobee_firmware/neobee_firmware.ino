@@ -1,5 +1,5 @@
-/****************************************
- * neobee
+/************************************************
+ * neobee - The Smart Hive
  * 
  * Reading sensor data from a hive and 
  * push it to an mqtt broker. 
@@ -9,78 +9,107 @@
  * https://github.com/FirstKlaas/neobee
  *
  * (c) 2020 FirstKlaas <klaas.nebuhr@gmail.com>
- */
+ ************************************************/
 
-#include "HX711.h"
-#include <OneWire.h>
-#include <DallasTemperature.h>
+#include "neobee.h"
+
+#define ITERATIONS 10
 
 #define SERIAL_SPEED 115200
 
 // HX711 circuit wiring
-const int LOADCELL_DOUT_PIN = 2;
-const int LOADCELL_SCK_PIN = 3;
-
-// The pin, the data wire of the Dallas sensor is connected to.
-#define ONE_WIRE_BUS 2
-#define TEMPERATURE_PRECISION 9
-
-// Setup a oneWire instance to communicate with any OneWire devices
-// (not just Maxim/Dallas temperature ICs)
-OneWire oneWire(ONE_WIRE_BUS);
 
 // DeepSleep time in microseconds
 // If you set the number to 0, you need to trigger the
 // restart via the RST pin by setting it somehow to LOW
-const int DEEP_SLEEP_SECONDS = 30e6 // Equivalent to 30 seconds
+const int DEEP_SLEEP_SECONDS = 30e6; // Equivalent to 30 seconds
 
 // The calibration factor has to be determined
 // for each load call and hx711 module combination
 // individually. This library has no support for
 // calibration. Check out the github page for more information.
-const float CALIBRATION_FACTOR = 2280.f;
+//const float SCALE_FACTOR = 21.8687258687f;
+const float SCALE_FACTOR = 21.66f;
 
-// The HX711 scale instance
-HX711 scale;
+Context ctx;
 
-// Pass our oneWire reference to Dallas Temperature.
-DallasTemperature sensors(&oneWire);
+NeoBeeTemperature temperature(ctx);
+NeoBeeScale scale(ctx);
+Adafruit_NeoPixel pixels(1, D1, NEO_GRB + NEO_KHZ800);
 
-// arrays to hold device addresses
-DeviceAddress insideThermometer, outsideThermometer;
 
-#define DEBUG
- 
+void setupScaleOffset() {
+  Serial.println("Setting up the offset of the scale (taring.");
+  Serial.println("Make sure, the scale is 'empty'. You've got 10 seconds to clear.");
+  
+  for (uint8_t i=0; i<10; i++) {
+    delay(1000);
+    Serial.print("*");
+  }
+  Serial.println("");
+  Serial.println("Reading offset. (Taring the scale.)");
+  scale.tare(ITERATIONS);
+  Serial.print("Offset is: ");
+  Serial.println(scale.getOffset());
+}
+
+void setupScaleFactor() {
+
+  Serial.println("Now calibrating the scale.");
+  Serial.println("Please put the reference weight onto the scale.");
+  Serial.println("You've got 10 seconds.");
+  for (uint8_t i=0; i<10; i++) {
+    delay(1000);
+    Serial.print("*");
+  }
+  Serial.println("");
+  scale.calibrate(ITERATIONS);
+ }
+
 void setup() {
 
-  #ifdef DEBUG
-    Serial.begin(SERIAL_SPEED)
-  #endif
+  pixels.begin();
+  pixels.setPixelColor(0, pixels.Color(0,151,0));
+  pixels.show();
   
-  // Initialize library with data output pin, clock input pin and gain factor.
-  // Channel selection is made by passing the appropriate gain:
-  // - With a gain factor of 64 or 128, channel A is selected
-  // - With a gain factor of 32, channel B is selected
-  // By omitting the gain factor parameter, the library
-  // default "128" (Channel A) is used here.
-  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  bool contextChanged = false;
+  
+  #ifdef DEBUG
+    Serial.begin(SERIAL_SPEED);
+    Serial.println("#############################################");
+    Serial.println("# NeoBee - Hive Data Logger                 #");
+    Serial.println("#############################################");
+  #endif
 
-  // Start the ds18b20 sensors to work
-  sensors.begin();
-
-
-  // Get the adresses for the dallas sensors
-  if (!sensors.getAddress(insideThermometer, 0)) {
-    #ifdef DEBUG
-      Serial.println("Unable to find address for Device 0");
-    #endif
+  delay(2000);
+  if (nbLoadCtx(ctx)) {
+    Serial.println("Context restored");
+  } else {
+    Serial.println("Context created");
   }
-  if (!sensors.getAddress(outsideThermometer, 1)) {
-    #ifdef DEBUG
-      Serial.println("Unable to find address for Device 1");
-    #endif
+  //ctx.flags = 0;
+  scale.begin();
+  temperature.begin();
+  
+  if (!scale.hasOffset()) {
+    setupScaleOffset();
+    contextChanged = true;
+  };
+
+  if (!scale.hasFactor()) {
+    setupScaleFactor();
+    contextChanged = true;
+  };
+  if (contextChanged) {
+    nbSaveCtx(ctx);
   }
+  nbPrintCtx(ctx); 
+  ESP.deepSleep(DEEP_SLEEP_SECONDS); 
 }
 
 void loop() {
+  Serial.print("Weight: ");
+  Serial.println(scale.getWeight(ITERATIONS));
+  Serial.println("------------------------");
+  delay(5000);
 }
