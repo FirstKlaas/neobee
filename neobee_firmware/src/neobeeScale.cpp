@@ -49,10 +49,10 @@ double NeoBeeScale::readPrecise(uint8_t ntimes) {
   return raw / ntimes;
 }
 
-void NeoBeeScale::calibrate(uint8_t ntimes) {
+void NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
   _scale.set_scale(1.f);
   double raw = readPrecise(ntimes);
-  setFactor((raw - m_ctx.scale.offset)  / REFERENCE_WEIGHT);
+  setFactor((raw - m_ctx.scale.offset) / reference_weight);
   _scale.set_scale(getFactor());
 }
 
@@ -60,7 +60,6 @@ void NeoBeeScale::tare(uint8_t ntimes) {
   setOffset(readPrecise(ntimes));
   _scale.set_offset(getOffset());
 }
-
 
 double NeoBeeScale::getOffset() {
     return m_ctx.scale.offset;

@@ -84,9 +84,13 @@ void setup() {
 
   delay(2000);
   if (ctx.load()) {
+    #ifdef DEBUG
     Serial.println("Context restored");
+    #endif
   } else {
+    #ifdef DEBUG
     Serial.println("Context created");
+    #endif
   }
   //ctx.flags = 0;
   /**

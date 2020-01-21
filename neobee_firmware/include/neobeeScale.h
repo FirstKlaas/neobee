@@ -11,11 +11,8 @@ class NeoBeeScale
     virtual ~NeoBeeScale();
 
     void begin();
-    void calibrate(uint8_t ntimes = 10);
+    void calibrate(uint16_t reference_weight, uint8_t ntimes = 10);
     float getWeight(uint8_t ntimes = 20);
-    long readMedian();
-    double readPrecise(uint8_t ntimes = 10); 
-    long getRaw(uint8_t ntimes = 20);
 
     double getOffset();
     void setOffset(const double offset);
@@ -33,7 +30,9 @@ class NeoBeeScale
     
   private:  
     Context& m_ctx;
+    long readMedian();
+    double readPrecise(uint8_t ntimes = 10); 
+    long getRaw(uint8_t ntimes = 20);
 };
-
 
 #endif
