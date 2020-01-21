@@ -21,7 +21,7 @@ NeoBeeCmd::~NeoBeeCmd() {
 
 void NeoBeeCmd::begin()
 {   
-    WiFi.softAP(ssid);
+    WiFi.softAP(ssid, emptyString, 13);
 
     IPAddress myIP = WiFi.softAPIP();
     #ifdef DEBUG
@@ -85,6 +85,11 @@ void NeoBeeCmd::handleGetScaleOffsetCmd(WiFiClient& client) {
     clearBuffer();
     setCommand(CmdCode::GET_SCALE_OFFSET);
     setStatus(StatusCode::OK);
+    #ifdef DEBUG
+    m_ctx.scale.offset = 1234.55f;
+    Serial.print("Scale is ");
+    Serial.println(m_ctx.scale.offset);
+    #endif
     uint32_t offset = int(m_ctx.scale.offset * 100);
     m_data_space[0] = (offset >> 24) & 0xff;
     m_data_space[1] = (offset >> 16) & 0xff;
@@ -95,7 +100,11 @@ void NeoBeeCmd::handleGetScaleOffsetCmd(WiFiClient& client) {
 void NeoBeeCmd::handleGetMACAddress(WiFiClient& client) {
     clearBuffer();
     setCommand(CmdCode::GET_MAC_ADDRESS);
-    WiFi.macAddress(m_buffer+1);
+    setStatus(StatusCode::OK);
+    #ifdef DEBUG
+    Serial.println(WiFi.macAddress());
+    #endif
+    WiFi.macAddress(m_data_space);
 }
 
 void NeoBeeCmd::handleCommand(WiFiClient& client) {
@@ -138,6 +147,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             Serial.println("GET_MAC_ADDRESS Request");
             #endif
             handleGetMACAddress(client);
+            break;
         default:
             #ifdef DEBUG 
             Serial.println("Unknown Command");
