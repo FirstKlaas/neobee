@@ -15,7 +15,7 @@
 
 #define ITERATIONS 10
 
-#define SERIAL_SPEED 115200
+#define SERIAL_SPEED 9600
 
 // HX711 circuit wiring
 
@@ -35,6 +35,7 @@ Context ctx;
 
 NeoBeeTemperature temperature(ctx);
 NeoBeeScale scale(ctx);
+NeoBeeCmd cmd(ctx);
 Adafruit_NeoPixel pixels(1, D1, NEO_GRB + NEO_KHZ800);
 
 
@@ -88,6 +89,7 @@ void setup() {
     Serial.println("Context created");
   }
   //ctx.flags = 0;
+  /**
   scale.begin();
   temperature.begin();
   
@@ -104,12 +106,17 @@ void setup() {
     ctx.save();
   }
   ctx.print(); 
-  ESP.deepSleep(DEEP_SLEEP_SECONDS); 
+  ESP.deepSleep(DEEP_SLEEP_SECONDS);
+  **/
+ cmd.begin(); 
 }
 
 void loop() {
+  cmd.checkForCommands();
+  /**
   Serial.print("Weight: ");
   Serial.println(scale.getWeight(ITERATIONS));
   Serial.println("------------------------");
   delay(5000);
+  **/
 }
