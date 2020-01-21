@@ -10,7 +10,6 @@
 #define LOADCELL_SCK_PIN  D3
 #define REFERENCE_WEIGHT  1550.0f
 
-
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Adafruit_NeoPixel.h>
@@ -27,16 +26,30 @@
 // Data strucure to store relevant information
 // between two deep sleep cycles
 //
-typedef struct context {
-  char magic_bytes[7];
-  char name[20];
-  uint8_t flags;
-  uint16_t DEEP_SLEEP_SECONDS;
-  double scaleOffset;
-  float scaleFactor;
-  uint8_t SCALE_GAIN;
+typedef struct {
+  char host_name[32];
+  uint16_t port;
+} MqttServer;
+
+typedef struct {
+  double offset;
+  float factor;
+  uint8_t gain;
+} Scale;
+
+typedef struct {
   DeviceAddress addr_inside;
   DeviceAddress addr_outside;
+} Temperature;
+
+typedef struct context {
+  char magic_bytes[6];
+  char name[20];
+  uint8_t flags;
+  uint16_t deep_sleep_seconds;
+  Scale scale;
+  Temperature temperature;
+  MqttServer mqttServer;
 
   context() {
     reset();
@@ -50,12 +63,12 @@ typedef struct context {
   inline bool hasAddrOutside() const { return _flag(FLAG_ADDR_OUTSIDE_SET); };
 
   void reset() {
-    strncpy(magic_bytes, "NEOBEE\0", 7);
+    strncpy(magic_bytes, "NEOBEE", 6);
     flags=0;
-    memset(name,0,20);
-    scaleOffset = 0.f;
-    scaleFactor = 1.f;
-    SCALE_GAIN = 128;
+    memset(name,0,sizeof(name));
+    scale.offset = 0.f;
+    scale.factor = 1.f;
+    scale.gain = 128;
   };
 
   inline bool _flag(uint8_t flag) const { return bitRead(flags, flag); };
@@ -117,10 +130,10 @@ typedef struct context {
     Serial.println(magic_bytes);
 
     Serial.print("Offset      : ");
-    Serial.println(scaleOffset);
+    Serial.println(scale.offset);
     
     Serial.print("Factor      : ");
-    Serial.println(scaleFactor);
+    Serial.println(scale.factor);
 
     Serial.println("");
     Serial.println("-----------------------");

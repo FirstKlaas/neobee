@@ -73,7 +73,7 @@ void setup() {
   pixels.setPixelColor(0, pixels.Color(0,151,0));
   pixels.show();
   
-  bool contextChanged = false;
+  //bool contextChanged = false;
   
   #ifdef DEBUG
     Serial.begin(SERIAL_SPEED);

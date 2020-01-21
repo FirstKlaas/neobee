@@ -1,3 +1,8 @@
+/*****************************************************************************
+ * NeoBee Temperature Class
+ * 
+ * author: Klaas Nebuhr
+ * **************************************************************************/
 #include "neobeeTemperature.h"
 
 // The pin, the data wire of the Dallas sensor is connected to.
@@ -30,6 +35,9 @@ void NeoBeeTemperature::begin() {
   sensors.begin();
   delay(200);
   // Todo: Muss ich das noch machen, wenn ich einmal die Adressen gefunden habe?
-  bitWrite(m_ctx.flags, FLAG_ADDR_INSIDE_SET, sensors.getAddress(m_ctx.addr_inside, 0));
-  bitWrite(m_ctx.flags, FLAG_ADDR_OUTSIDE_SET, sensors.getAddress(m_ctx.addr_inside, 1));
+  // Wenn die Adressen einmal ermittelt wurden, sind diese im context hinterlegt.
+  // Was ist, wenn der zweite Sensor nicht angeschlossen ist? Dann wäre das Flag nicht
+  // gesetzt und man wuerde hier erneut versuchen, die Adressen zu ermitteln.
+  bitWrite(m_ctx.flags, FLAG_ADDR_INSIDE_SET, sensors.getAddress(m_ctx.temperature.addr_inside, 0));
+  bitWrite(m_ctx.flags, FLAG_ADDR_OUTSIDE_SET, sensors.getAddress(m_ctx.temperature.addr_inside, 1));
 }
