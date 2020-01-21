@@ -21,7 +21,7 @@ NeoBeeCmd::~NeoBeeCmd() {
 
 void NeoBeeCmd::begin()
 {   
-    WiFi.softAP(ssid, emptyString, 13);
+    WiFi.softAP(ssid);
 
     IPAddress myIP = WiFi.softAPIP();
     #ifdef DEBUG
