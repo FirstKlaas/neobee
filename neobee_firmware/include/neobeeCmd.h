@@ -9,19 +9,28 @@
 #define BUFFER_SIZE 32
 
 enum class CmdCode : uint8_t {
-    NOP = 0,
-    GET_NAME = 1,
-    SET_NAME = 2,
-    GET_SCALE_OFFSET = 10,
-    SET_SCALE_OFFSET = 11,
-    GET_MAC_ADDRESS = 80,
-    ECHO = 255
+    NOP              =   0,
+    GET_NAME         =   1,
+    SET_NAME         =   2,
+    GET_FLAGS        =   3,
+    GET_SCALE_OFFSET =  10,
+    SET_SCALE_OFFSET =  11,
+    GET_SCALE_FACTOR =  12,
+    SET_SCALE_FACTOR =  13,
+
+    GET_MAC_ADDRESS  =  80,
+    GET_VERSION      =  81,
+    SET_IDLE_TIME    =  82,
+    TARE             = 200,
+    CALIBRATE        = 201,
+    ECHO             = 255
 };
 
 enum class StatusCode : uint8_t {
-    OK = 20,
-    BAD_REQUEST = 40,
-    NOT_FOUND = 44
+    NONE         =  0,
+    OK           = 20,
+    BAD_REQUEST  = 40,
+    NOT_FOUND    = 44
 };
 
 class NeoBeeCmd
@@ -51,47 +60,19 @@ class NeoBeeCmd
 
         void sendResponse(WiFiClient& client, bool flush = true);
         void handleCommand(WiFiClient& client);
-
-        /**
-         * Handles the GET_NAME command.
-         * 
-         * Sends back the name of the device.
-         * 
-         * If no name is set, a 404 status is returned
-         * and no assertions for the data are made.
-         * 
-         * If a name is set, a status of 200 is returned.
-         * The data block contains the name of the device.
-         * All unused data block bytes have a value of 0.
-         **/ 
-        void handleGetNameCmd(WiFiClient& client);
-
-        void handleSetNameCmd(WiFiClient& client);
-
-        void handleGetScaleOffsetCmd(WiFiClient& client);
-
-        void handleGetMACAddress(WiFiClient& client);
-
-        /** 
-         * Handles the ECHO command.
-         * 
-         * The ECHO command just sends back the incoming data
-         * without any change. This command is more for testing
-         * purpose.
-         **/ 
-        inline void handleEchoCmd(WiFiClient& client)
-        {
-            #ifdef DEBUG
-            Serial.println("CMD ECHO");
-            #endif 
-            sendResponse(client); 
-        };
         
         inline void setStatus(StatusCode status) {
             m_buffer[1] = static_cast<uint8_t>(status);
-        }
+        };
 
-        inline void clearBuffer() { memset(m_buffer, 0, BUFFER_SIZE); };
+        inline void clearBuffer(
+            CmdCode cmd = CmdCode::NOP,
+            StatusCode status = StatusCode::NONE 
+        ) {
+            memset(m_buffer, 0, BUFFER_SIZE);
+            setCommand(cmd);
+            setStatus(status); 
+        };
 };
 
 #endif

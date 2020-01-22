@@ -38,73 +38,16 @@ void NeoBeeCmd::sendResponse(WiFiClient& client, bool flush) {
     clearBuffer();
 }
 
-/**
- * Return the name (and status 200) if set, or a status of 404,
- * if no name is set.
- **/
-void NeoBeeCmd::handleGetNameCmd(WiFiClient& client) {
-    clearBuffer();
-    setCommand(CmdCode::GET_NAME);
-    if (m_ctx.hasName()) {
-        /**
-         * Die min Betrachtung ist nur eine Sicherheitsmassnahme.
-         * Eigentlich wird per Spezifikation sicher gestellt, dass
-         * der Name immer kleiner, als der data space ist.
-         **/
-        memcpy(m_data_space, m_ctx.name, std::min((uint8_t)sizeof(m_ctx.name), m_data_space_size));
-        setStatus(StatusCode::OK);
-    } else {
-        setStatus(StatusCode::NOT_FOUND);
-    }
+inline void writeInt32(uint32_t value, uint8_t* dst) {
+    dst[0] = (value >> 24) & 0xff;
+    dst[1] = (value >> 16) & 0xff;
+    dst[2] = (value >> 8) & 0xff;
+    dst[3] = value & 0xff;
 }
 
-void NeoBeeCmd::handleSetNameCmd(WiFiClient& client) {
-    /**
-     * Wie verhaelt es sich mit 0 Terminierungen
-     * und Laengen? Das array für den Namen des device
-     * im Context muss nicht 0 terminiert sein.
-     **/
-    strncpy(m_ctx.name, (char*) (m_buffer+1), sizeof(m_ctx.name));
-    clearBuffer();
-    setStatus(StatusCode::OK);
-    setCommand(CmdCode::SET_NAME);
-}
-
-/**
- * Sending back the offset of the scale and a status of OK,
- * if a offset is set. A status of NOT_FOUND, if not set.
- * 
- * The offset is send back as a four byte integer. The
- * actual value is multiplied by 100 before sending it back.
- * 
- * So the value of 55.23f would be sendback as 5523. But
- * also keep in mind, that an actual value of 55.2345f
- * would also be send back as 5523.
- */
-void NeoBeeCmd::handleGetScaleOffsetCmd(WiFiClient& client) {
-    clearBuffer();
-    setCommand(CmdCode::GET_SCALE_OFFSET);
-    setStatus(StatusCode::OK);
-    #ifdef DEBUG
-    m_ctx.scale.offset = 1234.55f;
-    Serial.print("Scale is ");
-    Serial.println(m_ctx.scale.offset);
-    #endif
-    uint32_t offset = int(m_ctx.scale.offset * 100);
-    m_data_space[0] = (offset >> 24) & 0xff;
-    m_data_space[1] = (offset >> 16) & 0xff;
-    m_data_space[2] = (offset >> 8) & 0xff;
-    m_data_space[3] = offset & 0xff;
-}
-
-void NeoBeeCmd::handleGetMACAddress(WiFiClient& client) {
-    clearBuffer();
-    setCommand(CmdCode::GET_MAC_ADDRESS);
-    setStatus(StatusCode::OK);
-    #ifdef DEBUG
-    Serial.println(WiFi.macAddress());
-    #endif
-    WiFi.macAddress(m_data_space);
+inline uint32_t readInt32(uint8_t* dst)
+{
+    return (dst[0] << 24) + (dst[1] << 16) + (dst[2] << 8) + (dst[3]); 
 }
 
 void NeoBeeCmd::handleCommand(WiFiClient& client) {
@@ -118,43 +61,90 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             setCommand(CmdCode::NOP);
             setStatus(StatusCode::OK); 
             break;
+
         case CmdCode::GET_NAME:
             #ifdef DEBUG 
             Serial.println("GET_NAME Request");
             #endif
-            handleGetNameCmd(client);
+            clearBuffer(CmdCode::GET_NAME, StatusCode::OK);
+            if (m_ctx.hasName()) {
+                memcpy(m_data_space, m_ctx.name, sizeof(m_ctx.name));
+                setStatus(StatusCode::OK);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            }
             break;
+
         case CmdCode::SET_NAME:
             #ifdef DEBUG 
             Serial.println("SET_NAME_ADDRESS Request");
             #endif
-            handleSetNameCmd(client);
+            /**
+             * Wie verhaelt es sich mit 0 Terminierungen
+             * und Laengen? Das array für den Namen des device
+             * im Context muss nicht 0 terminiert sein.
+             **/
+            clearBuffer(CmdCode::SET_NAME, StatusCode::OK);
+            strncpy(m_ctx.name, (char*) (m_buffer+1), sizeof(m_ctx.name));
             break;
+
         case CmdCode::GET_SCALE_OFFSET:
             #ifdef DEBUG 
             Serial.println("GET_SCALE_OFFSET Request");
+            Serial.print("Scale offset is: ");
+            Serial.println(m_ctx.scale.offset);
             #endif
-            handleGetScaleOffsetCmd(client);
+            clearBuffer(CmdCode::GET_SCALE_OFFSET, StatusCode::OK);
+            if (m_ctx.hasOffset()) {
+                writeInt32(int(m_ctx.scale.offset * 100), m_data_space);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            }
             break;
-        case CmdCode::ECHO:
+
+        case CmdCode::SET_SCALE_OFFSET:
             #ifdef DEBUG 
-            Serial.println("ECHO Request");
+            Serial.println("SET_SCALE_OFFSET Request");
             #endif
-            handleEchoCmd(client);
+            clearBuffer(CmdCode::SET_SCALE_OFFSET, StatusCode::OK);
+            m_ctx.scale.offset = readInt32(m_data_space) / 100.f;
+            #ifdef DEBUG 
+            Serial.print("New offset is:");
+            Serial.println(m_ctx.scale.offset);            
+            #endif
             break;
+
+        /* ------------------------------------
+         * GET_MAC_ADDRESS
+         */    
         case CmdCode::GET_MAC_ADDRESS:
             #ifdef DEBUG 
             Serial.println("GET_MAC_ADDRESS Request");
             #endif
-            handleGetMACAddress(client);
+            clearBuffer(CmdCode::GET_MAC_ADDRESS, StatusCode::OK);
+            WiFi.macAddress(m_data_space);
             break;
+
+        case CmdCode::GET_FLAGS:
+            clearBuffer(CmdCode::GET_FLAGS, StatusCode::OK);
+            m_data_space[0] = m_ctx.flags;
+            break;
+
+        case CmdCode::GET_SCALE_FACTOR:
+            clearBuffer(CmdCode::GET_SCALE_FACTOR, StatusCode::OK);
+            writeInt32(int(m_ctx.scale.factor * 100), m_data_space);
+            break;
+
+        case CmdCode::SET_SCALE_FACTOR:
+            clearBuffer(CmdCode::SET_SCALE_FACTOR, StatusCode::OK);
+            m_ctx.scale.factor = readInt32(m_data_space) / 100.f;
+            break; 
+        
         default:
             #ifdef DEBUG 
             Serial.println("Unknown Command");
             #endif
-            clearBuffer();
-            setCommand(CmdCode::NOP);
-            setStatus(StatusCode::BAD_REQUEST);
+            clearBuffer(CmdCode::NOP, StatusCode::BAD_REQUEST);
             break;
     }
     sendResponse(client);
