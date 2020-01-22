@@ -101,7 +101,7 @@ class NeoBeeShell:
             bytes_recd = bytes_recd + len(chunk)
 
     def _send(self):
-        self._socket.sendall(self._buffer)
+        self._socket.send(self._buffer)
         self._receive()
 
     def _print_buffer(self):

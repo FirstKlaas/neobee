@@ -4,8 +4,6 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#define DEBUG
-
 #define LOADCELL_DOUT_PIN D2
 #define LOADCELL_SCK_PIN  D3
 #define REFERENCE_WEIGHT  1550.0f
