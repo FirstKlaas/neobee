@@ -26,7 +26,6 @@ void NeoBeeScale::begin() {
 
 float NeoBeeScale::getWeight(uint8_t ntimes) {
   return _scale.get_units(ntimes);
-  //return (readPrecise() - m_ctx.scaleOffset) / m_ctx.scaleFactor;   
 }
 
 long NeoBeeScale::getRaw(uint8_t ntimes) {
@@ -62,28 +61,28 @@ void NeoBeeScale::tare(uint8_t ntimes) {
 }
 
 double NeoBeeScale::getOffset() {
-    return m_ctx.scale.offset;
+  return m_ctx.scale.offset;
 }
 
 void NeoBeeScale::setOffset(const double offset) {
-    m_ctx.scale.offset = offset;
-    bitSet(m_ctx.flags, FLAG_OFFSET_SET);
+  m_ctx.scale.offset = offset;
+  bitSet(m_ctx.flags, FLAG_OFFSET_SET);
 }
 
 float NeoBeeScale::getFactor() {
-    return m_ctx.scale.factor;
+  return m_ctx.scale.factor;
 }
 
 void NeoBeeScale::setFactor(const float factor) {
-    m_ctx.scale.factor = factor;
-    bitSet(m_ctx.flags, FLAG_FACTOR_SET);
+  m_ctx.scale.factor = factor;
+  bitSet(m_ctx.flags, FLAG_FACTOR_SET);
 }
 
 uint8_t NeoBeeScale::getGain() {
-    return m_ctx.scale.gain;
+  return m_ctx.scale.gain;
 }
 
 void NeoBeeScale::setGain(const uint8_t gain) {
-    m_ctx.scale.gain = gain;
-    bitSet(m_ctx.flags, FLAG_GAIN_SET);
+  m_ctx.scale.gain = gain;
+  bitSet(m_ctx.flags, FLAG_GAIN_SET);
 }

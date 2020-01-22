@@ -22,6 +22,7 @@
 #define FLAG_NAME_SET             3
 #define FLAG_ADDR_INSIDE_SET      4
 #define FLAG_ADDR_OUTSIDE_SET     5
+#define DEEP_SLEEP_SET            6
 
 // Data strucure to store relevant information
 // between two deep sleep cycles
@@ -123,6 +124,7 @@ typedef struct context {
   }
 
   void print() const {
+    #ifdef DEBUG
     Serial.print("Name        : ");
     Serial.println(name);
     
@@ -160,6 +162,7 @@ typedef struct context {
     Serial.println(bitRead(flags, FLAG_ADDR_OUTSIDE_SET));
 
     Serial.println("-----------------------");
+    #endif
   }
 
 } Context;

@@ -40,30 +40,45 @@ Adafruit_NeoPixel pixels(1, D1, NEO_GRB + NEO_KHZ800);
 
 
 void setupScaleOffset() {
+  #ifdef DEBUG
   Serial.println("Setting up the offset of the scale (taring.");
   Serial.println("Make sure, the scale is 'empty'. You've got 10 seconds to clear.");
-  
+  #endif
+
   for (uint8_t i=0; i<10; i++) {
     delay(1000);
+    #ifdef DEBUG
     Serial.print("*");
+    #endif
   }
+  #ifdef DEBUG
   Serial.println("");
   Serial.println("Reading offset. (Taring the scale.)");
+  #endif
   scale.tare(ITERATIONS);
+  #ifdef DEBUG
   Serial.print("Offset is: ");
+  #endif
   Serial.println(scale.getOffset());
 }
 
 void setupScaleFactor() {
 
+  #ifdef DEBUG
   Serial.println("Now calibrating the scale.");
   Serial.println("Please put the reference weight onto the scale.");
   Serial.println("You've got 10 seconds.");
+  #endif
+
   for (uint8_t i=0; i<10; i++) {
     delay(1000);
+    #ifdef DEBUG
     Serial.print("*");
+    #endif
   }
+  #ifdef DEBUG
   Serial.println("");
+  #endif
   scale.calibrate(ITERATIONS);
  }
 
