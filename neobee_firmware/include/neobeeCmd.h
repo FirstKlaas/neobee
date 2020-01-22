@@ -24,6 +24,7 @@ enum class CmdCode : uint8_t {
     GET_IDLE_TIME    =  83, 
     TARE             = 200,
     CALIBRATE        = 201,
+    GET_WEIGHT       = 202
 };
 
 enum class StatusCode : uint8_t {

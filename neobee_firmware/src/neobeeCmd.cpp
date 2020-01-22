@@ -185,6 +185,16 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
             m_data_space[0] = (m_ctx.deep_sleep_seconds >> 8) & 0xff; // HIGH BYTE
             m_data_space[1] = m_ctx.deep_sleep_seconds & 0xff;        // LOW BYTE
+            break;
+
+        case CmdCode::GET_WEIGHT:
+            uint8_t ntimes;
+            float weight;
+
+            clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
+            weight = m_scale.getWeight(ntimes);
+            writeInt32(weight, m_data_space);
+            break;
 
         default:
             #ifdef DEBUG 
