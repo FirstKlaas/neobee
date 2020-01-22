@@ -107,11 +107,17 @@ class NeoBeeShell:
     def _print_buffer(self):
         print( ':'.join("{:02x}".format(x) for x in self._buffer))
 
+    def __getitem__(self, index):
+        return self._buffer[index+2]
+
+    def __setitem__(self, index, value):
+        self._buffer[index+2] = (value & 0xff)
+
     def get_version(self):
         self._clearbuffer()
         self._buffer[0] = CmdCode.GET_VERSION
         self._send()
-        self._print_buffer()
+        return (self[0],self[1],self[2])
 
     @property
     def _cmd(self):
@@ -129,10 +135,8 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.GET_SCALE_OFFSET
         self._send()
-        print("Get Scale Offset")
-        self._print_buffer()
         if self._status == StatusCode.OK:
-            return ((self._buffer[2] << 24) | (self._buffer[3] << 16) | (self._buffer[4] << 8) | self._buffer[5])
+            return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
         elif self._status == StatusCode.NOT_FOUND:
             return None
         else:
@@ -142,17 +146,17 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.SET_SCALE_OFFSET
         iValue = int(value*100)
-        self._buffer[2] = (iValue >> 24) & 0xff
-        self._buffer[3] = (iValue >> 16) & 0xff
-        self._buffer[4] = (iValue >> 8) & 0xff
-        self._buffer[5] = (iValue) & 0xff
+        self[0] = (iValue >> 24) & 0xff
+        self[1] = (iValue >> 16) & 0xff
+        self[2] = (iValue >> 8) & 0xff
+        self[3] = (iValue) & 0xff
         self._print_buffer
         self._send()
         self._print_buffer
 
 
 with NeoBeeShell() as shell:
-    #shell.get_version()
-    #print(shell.get_scale_offset())
-    shell.set_scale_offset(17.3)
-    print(shell.get_scale_offset())
+    print("Version: ", shell.get_version())
+    print("Offset: ", shell.get_scale_offset())
+    shell.set_scale_offset(666.66)
+    print("Offset; ", shell.get_scale_offset())
