@@ -21,9 +21,9 @@ enum class CmdCode : uint8_t {
     GET_MAC_ADDRESS  =  80,
     GET_VERSION      =  81,
     SET_IDLE_TIME    =  82,
+    GET_IDLE_TIME    =  83, 
     TARE             = 200,
     CALIBRATE        = 201,
-    ECHO             = 255
 };
 
 enum class StatusCode : uint8_t {

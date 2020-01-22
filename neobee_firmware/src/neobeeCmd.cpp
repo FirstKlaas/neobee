@@ -157,13 +157,34 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             break;
 
         case CmdCode::CALIBRATE:
+            uint16_t ref_weight;
+
             clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
             m_scale.begin();
-            uint16_t reference_weight = (m_data_space[0] << 0xff) | m_data_space[1];
-            m_scale.calibrate(reference_weight, m_data_space[2]);
+            
+            ref_weight = ((m_data_space[0] << 8) + m_data_space[1]);
+            m_scale.calibrate(ref_weight, m_data_space[2]);
+        
             writeInt32(int(m_ctx.scale.offset * 100), m_data_space);
-            writeInt32(int(m_ctx.scale.factor * 100), m_data_space+4);
+            writeInt32(int(m_ctx.scale.factor * 100), m_data_space + 4);
             break;
+
+        case CmdCode::GET_VERSION:
+            clearBuffer(CmdCode::GET_VERSION, StatusCode::OK);
+            m_data_space[0] = 0;
+            m_data_space[1] = 1;
+            m_data_space[2] = 0;
+            break;
+
+        case CmdCode::SET_IDLE_TIME:
+            clearBuffer(CmdCode::SET_IDLE_TIME, StatusCode::OK);
+            m_ctx.deep_sleep_seconds = (m_data_space[0] << 8) | m_data_space[1];
+            break;
+
+        case CmdCode::GET_IDLE_TIME:
+            clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
+            m_data_space[0] = (m_ctx.deep_sleep_seconds >> 8) & 0xff; // HIGH BYTE
+            m_data_space[1] = m_ctx.deep_sleep_seconds & 0xff;        // LOW BYTE
 
         default:
             #ifdef DEBUG 

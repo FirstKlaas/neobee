@@ -35,7 +35,7 @@ Context ctx;
 
 NeoBeeTemperature temperature(ctx);
 NeoBeeScale scale(ctx);
-NeoBeeCmd cmd(ctx);
+NeoBeeCmd cmd(ctx, scale, temperature);
 Adafruit_NeoPixel pixels(1, D1, NEO_GRB + NEO_KHZ800);
 
 
