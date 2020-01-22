@@ -8,20 +8,25 @@ HX711 _scale;
 
 long _values[15];
 
-NeoBeeScale::NeoBeeScale(Context& ctx): m_ctx(ctx) {
+NeoBeeScale::NeoBeeScale(Context& ctx): 
+m_ctx(ctx), _has_started(false)
+{
 }
 
 NeoBeeScale::~NeoBeeScale() {}
 
-void NeoBeeScale::begin() {
+bool NeoBeeScale::begin() {
   #ifdef DEBUG
     Serial.println("Starting scale");
   #endif
-  
+
+  if (_has_started) return false;
+
   _scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);  
   delay(200);
   _scale.set_offset(m_ctx.scale.offset);
   _scale.set_scale(m_ctx.scale.factor);
+  return true;
 }
 
 float NeoBeeScale::getWeight(uint8_t ntimes) {

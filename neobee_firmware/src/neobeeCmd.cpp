@@ -7,8 +7,16 @@ WiFiServer wifiServer(8888);
 
 #define HEADSIZE 2
 
-NeoBeeCmd::NeoBeeCmd(Context& ctx, uint16_t port): 
-m_ctx(ctx), m_port(port)
+NeoBeeCmd::NeoBeeCmd(
+    Context& ctx, 
+    NeoBeeScale& scale, 
+    NeoBeeTemperature& temp, 
+    uint16_t port): 
+
+    m_ctx(ctx), 
+    m_port(port),
+    m_scale(scale),
+    m_temperature(temp)
 {
     m_buffer = (uint8_t*) malloc(BUFFER_SIZE);
     m_data_space = m_buffer + HEADSIZE;
@@ -57,9 +65,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("NOP Request");
             #endif
-            clearBuffer();
-            setCommand(CmdCode::NOP);
-            setStatus(StatusCode::OK); 
+            clearBuffer(CmdCode::NOP, StatusCode::OK); 
             break;
 
         case CmdCode::GET_NAME:
@@ -138,8 +144,27 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
         case CmdCode::SET_SCALE_FACTOR:
             clearBuffer(CmdCode::SET_SCALE_FACTOR, StatusCode::OK);
             m_ctx.scale.factor = readInt32(m_data_space) / 100.f;
-            break; 
-        
+            break;
+
+        case CmdCode::TARE:
+            #ifdef DEBUG 
+            Serial.println("TARE Request");
+            #endif
+            clearBuffer(CmdCode::TARE, StatusCode::OK);
+            m_scale.begin();
+            m_scale.tare(m_data_space[1]);
+            writeInt32(int(m_ctx.scale.offset * 100), m_data_space);
+            break;
+
+        case CmdCode::CALIBRATE:
+            clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
+            m_scale.begin();
+            uint16_t reference_weight = (m_data_space[0] << 0xff) | m_data_space[1];
+            m_scale.calibrate(reference_weight, m_data_space[2]);
+            writeInt32(int(m_ctx.scale.offset * 100), m_data_space);
+            writeInt32(int(m_ctx.scale.factor * 100), m_data_space+4);
+            break;
+
         default:
             #ifdef DEBUG 
             Serial.println("Unknown Command");

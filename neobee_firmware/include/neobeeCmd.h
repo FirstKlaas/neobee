@@ -36,7 +36,7 @@ enum class StatusCode : uint8_t {
 class NeoBeeCmd
 {
     public:
-        NeoBeeCmd(Context& ctx, uint16_t port=8888);
+        NeoBeeCmd(Context& ctx, NeoBeeScale& scale, NeoBeeTemperature& temp, uint16_t port=8888);
         virtual ~NeoBeeCmd();
 
         inline CmdCode getCommand() {
@@ -57,6 +57,8 @@ class NeoBeeCmd
         WiFiServer* wifiServer;
         uint8_t* m_data_space;
         uint8_t m_data_space_size;
+        NeoBeeScale& m_scale;
+        NeoBeeTemperature& m_temperature;
 
         void sendResponse(WiFiClient& client, bool flush = true);
         void handleCommand(WiFiClient& client);
