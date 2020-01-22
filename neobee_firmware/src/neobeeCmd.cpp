@@ -30,6 +30,7 @@ NeoBeeCmd::~NeoBeeCmd() {
 void NeoBeeCmd::begin()
 {   
     WiFi.softAP(ssid);
+    WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
     IPAddress myIP = WiFi.softAPIP();
     #ifdef DEBUG
@@ -59,6 +60,13 @@ inline uint32_t readInt32(uint8_t* dst)
 }
 
 void NeoBeeCmd::handleCommand(WiFiClient& client) {
+    #ifdef DEBUG
+    for (uint8_t i=0; i<32; i++) {
+        Serial.print(m_buffer[i], HEX);
+        Serial.print(":");
+    }
+    Serial.println();
+    #endif
     CmdCode cmd = getCommand();
     switch (cmd) {
         case CmdCode::NOP:
@@ -90,19 +98,17 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * und Laengen? Das array für den Namen des device
              * im Context muss nicht 0 terminiert sein.
              **/
-            clearBuffer(CmdCode::SET_NAME, StatusCode::OK);
             strncpy(m_ctx.name, (char*) (m_buffer+1), sizeof(m_ctx.name));
+            clearBuffer(CmdCode::SET_NAME, StatusCode::OK);
             break;
 
         case CmdCode::GET_SCALE_OFFSET:
             #ifdef DEBUG 
             Serial.println("GET_SCALE_OFFSET Request");
-            Serial.print("Scale offset is: ");
-            Serial.println(m_ctx.scale.offset);
             #endif
             clearBuffer(CmdCode::GET_SCALE_OFFSET, StatusCode::OK);
             if (m_ctx.hasOffset()) {
-                writeInt32(int(m_ctx.scale.offset * 100), m_data_space);
+                writeInt32(int(m_scale.getOffset() * 100.0 + 0.5), m_data_space);
             } else {
                 setStatus(StatusCode::NOT_FOUND);
             }
@@ -112,11 +118,11 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("SET_SCALE_OFFSET Request");
             #endif
+            m_scale.setOffset(readInt32(m_data_space) / 100.f);
             clearBuffer(CmdCode::SET_SCALE_OFFSET, StatusCode::OK);
-            m_ctx.scale.offset = readInt32(m_data_space) / 100.f;
             #ifdef DEBUG 
             Serial.print("New offset is:");
-            Serial.println(m_ctx.scale.offset);            
+            Serial.println(m_scale.getOffset());            
             #endif
             break;
 
@@ -145,7 +151,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #endif
             clearBuffer(CmdCode::GET_SCALE_FACTOR, StatusCode::OK);
             if (m_ctx.hasFactor()) {
-                writeInt32(int(m_ctx.scale.factor * 100), m_data_space);
+                writeInt32((int)(m_ctx.scale.factor * 100.0 + 0.5), m_data_space);
             } else {
                 setStatus(StatusCode::NOT_FOUND);
             };
@@ -155,8 +161,12 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("SET_SCALE_FACTOR Request");
             #endif
+            m_scale.setFactor(readInt32(m_data_space) / 100.f);
             clearBuffer(CmdCode::SET_SCALE_FACTOR, StatusCode::OK);
-            m_ctx.scale.factor = readInt32(m_data_space) / 100.f;
+            #ifdef DEBUG 
+            Serial.println(m_scale.getFactor());
+            #endif
+            
             break;
 
         case CmdCode::TARE:
@@ -166,7 +176,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             clearBuffer(CmdCode::TARE, StatusCode::OK);
             m_scale.begin();
             m_scale.tare(m_data_space[1]);
-            writeInt32(int(m_ctx.scale.offset * 100), m_data_space);
+            writeInt32(int(m_scale.getOffset() * 100 + 0.5), m_data_space);
             break;
 
         case CmdCode::CALIBRATE:
@@ -181,8 +191,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             ref_weight = ((m_data_space[0] << 8) + m_data_space[1]);
             m_scale.calibrate(ref_weight, m_data_space[2]);
         
-            writeInt32(int(m_ctx.scale.offset * 100), m_data_space);
-            writeInt32(int(m_ctx.scale.factor * 100), m_data_space + 4);
+            writeInt32(int(m_ctx.scale.offset * 100 + 0.5), m_data_space);
+            writeInt32(int(m_ctx.scale.factor * 100 + 0.5), m_data_space + 4);
             break;
 
         case CmdCode::GET_VERSION:
@@ -213,6 +223,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             float weight;
 
             clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
+            ntimes = m_data_space[0];
             weight = m_scale.getWeight(ntimes);
             writeInt32(weight, m_data_space);
             break;
