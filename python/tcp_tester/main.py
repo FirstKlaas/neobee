@@ -71,14 +71,14 @@ class NeoBeeShell:
 
     def __init__(self, host="192.168.4.1", port=8888):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._host = host
-        self._port = port
+        self.host = host
+        self.port = port
         self._buffer = bytearray(32)
 
 
     def __enter__(self):
-        print("Connecting")
-        self._socket.connect((self._host, self._port))
+        print(f"Connecting to {self.host}:{self.port}")
+        self._socket.connect((self.host, self.port))
         return self
 
     def __exit__(self, type, value, traceback):
@@ -150,13 +150,34 @@ class NeoBeeShell:
         self[1] = (iValue >> 16) & 0xff
         self[2] = (iValue >> 8) & 0xff
         self[3] = (iValue) & 0xff
-        self._print_buffer
         self._send()
-        self._print_buffer
 
+    def get_scale_factor(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_SCALE_FACTOR
+        self._send()
+        if self._status == StatusCode.OK:
+            return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+        elif self._status == StatusCode.NOT_FOUND:
+            return None
+        else:
+            raise RuntimeError()
+
+    def set_scale_factor(self, value: float):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_SCALE_FACTOR
+        iValue = int(value*100)
+        self[0] = (iValue >> 24) & 0xff
+        self[1] = (iValue >> 16) & 0xff
+        self[2] = (iValue >> 8) & 0xff
+        self[3] = (iValue) & 0xff
+        self._send()
 
 with NeoBeeShell() as shell:
     print("Version: ", shell.get_version())
     print("Offset: ", shell.get_scale_offset())
     shell.set_scale_offset(666.66)
     print("Offset; ", shell.get_scale_offset())
+    print("Factor: ", shell.get_scale_factor())
+    shell.set_scale_factor(12.33)
+    print("Factor: ", shell.get_scale_factor())
