@@ -132,16 +132,29 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             break;
 
         case CmdCode::GET_FLAGS:
+            #ifdef DEBUG 
+            Serial.println("GET_FLAGS Request");
+            #endif
             clearBuffer(CmdCode::GET_FLAGS, StatusCode::OK);
             m_data_space[0] = m_ctx.flags;
             break;
 
         case CmdCode::GET_SCALE_FACTOR:
+            #ifdef DEBUG 
+            Serial.println("GET_SCALE_FACTOR Request");
+            #endif
             clearBuffer(CmdCode::GET_SCALE_FACTOR, StatusCode::OK);
-            writeInt32(int(m_ctx.scale.factor * 100), m_data_space);
+            if (m_ctx.hasFactor()) {
+                writeInt32(int(m_ctx.scale.factor * 100), m_data_space);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            };
             break;
 
         case CmdCode::SET_SCALE_FACTOR:
+            #ifdef DEBUG 
+            Serial.println("SET_SCALE_FACTOR Request");
+            #endif
             clearBuffer(CmdCode::SET_SCALE_FACTOR, StatusCode::OK);
             m_ctx.scale.factor = readInt32(m_data_space) / 100.f;
             break;
@@ -159,6 +172,9 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
         case CmdCode::CALIBRATE:
             uint16_t ref_weight;
 
+            #ifdef DEBUG 
+            Serial.println("CALIBRATE Request");
+            #endif
             clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
             m_scale.begin();
             
@@ -176,6 +192,11 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             m_data_space[2] = 0;
             break;
 
+        /**
+         * Setting the idle time in seconds (duration for deep sleep).
+         * The value is a two byte value. High-Byte in the first and
+         * low-byte in th second byte of the data space of the command.
+         */
         case CmdCode::SET_IDLE_TIME:
             clearBuffer(CmdCode::SET_IDLE_TIME, StatusCode::OK);
             m_ctx.deep_sleep_seconds = (m_data_space[0] << 8) | m_data_space[1];
@@ -206,6 +227,13 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
     sendResponse(client);
 }
 
+/**
+ * Checks, if a client has established an connection and 
+ * collects the incoming data, until we have received
+ * one bytes for one command (32-Bytes). After receiving
+ * the bytes, the handleCommand methos is called for
+ * command execution.
+ **/
 void NeoBeeCmd::checkForCommands() {
     WiFiClient client = wifiServer->available();
 
