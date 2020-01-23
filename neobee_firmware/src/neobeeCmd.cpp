@@ -77,7 +77,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             Serial.println("SET_NAME Request");
             #endif
             printByteArray(m_ctx.name, 20);
-            m_ctx.setName(m_buffer+1);
+            m_ctx.setName(m_data_space);
             printByteArray(m_ctx.name, 20);
             clearBuffer(CmdCode::SET_NAME, StatusCode::OK);
             break;
@@ -150,16 +150,30 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             break;
 
         case CmdCode::TARE:
+            /**
+             * TARE
+             * 
+             * Data Byte 0:  ntime. Number of times to measure
+             */
             #ifdef DEBUG 
             Serial.println("TARE Request");
             #endif
             clearBuffer(CmdCode::TARE, StatusCode::OK);
             m_scale.begin();
-            m_scale.tare(m_data_space[1]);
+            m_scale.tare(m_data_space[0]);
             writeInt32(int(m_scale.getOffset() * 100 + 0.5), m_data_space);
             break;
 
         case CmdCode::CALIBRATE:
+            /**
+             * CALIBRATE command
+             * 
+             * Data bytes
+             * ---------------------------------------------------------------
+             * 0 : HIGH byte of the reference weight
+             * 1 : LOW byte of the reference weight
+             * 2 : Number of times to measure to build an average 
+             **/
             uint16_t ref_weight;
 
             #ifdef DEBUG 
@@ -176,6 +190,18 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             break;
 
         case CmdCode::GET_VERSION:
+            /**
+             * GET_VERSION command
+             * 
+             * Requesting the version of the firmware. The version follows
+             * roughly the rules of semantic versioning.
+             *  
+             * Data bytes
+             * ---------------------------------------------------------------
+             * 0 : Version major number
+             * 1 : Version number
+             * 2 : Version build number
+             **/
             clearBuffer(CmdCode::GET_VERSION, StatusCode::OK);
             m_data_space[0] = 0;
             m_data_space[1] = 1;
@@ -188,17 +214,42 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
          * low-byte in th second byte of the data space of the command.
          */
         case CmdCode::SET_IDLE_TIME:
+
+            /**
+             * SET_IDLE_TIME command
+             * 
+             * Data bytes
+             * ---------------------------------------------------------------
+             * 0 : HIGH byte of the idle time
+             * 1 : LOW byte of the idle time
+             **/
             clearBuffer(CmdCode::SET_IDLE_TIME, StatusCode::OK);
             m_ctx.deep_sleep_seconds = (m_data_space[0] << 8) | m_data_space[1];
             break;
 
         case CmdCode::GET_IDLE_TIME:
+
+            /**
+             * GET_IDLE_TIME command
+             * 
+             * Data bytes
+             * ---------------------------------------------------------------
+             * 0 : HIGH byte of the idle time
+             * 1 : LOW byte of the idle time
+             **/
             clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
             m_data_space[0] = (m_ctx.deep_sleep_seconds >> 8) & 0xff; // HIGH BYTE
             m_data_space[1] = m_ctx.deep_sleep_seconds & 0xff;        // LOW BYTE
             break;
 
         case CmdCode::GET_WEIGHT:
+            /**
+             * GET_WEIGHT command
+             * 
+             * Data bytes
+             * ---------------------------------------------------------------
+             * 0 : Number of times to measure to build an average weight.
+             */
             uint8_t ntimes;
             float weight;
 

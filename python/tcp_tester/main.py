@@ -20,7 +20,7 @@ class CmdCode(IntEnum):
     CALIBRATE        = 201,
     GET_WEIGHT       = 202
 
-class ResponseFlag(IntFlag):
+class StatusFlag(IntFlag):
 
     FLAG_OFFSET_SET            1
     FLAG_FACTOR_SET            2
@@ -31,8 +31,15 @@ class ResponseFlag(IntFlag):
     DEEP_SLEEP_SET            64
     WIFI_NETWORK_SET         128
 
-class ResquestFlag(IntFlag):
 
+class RequestFlag(IntFlag):
+"""
+Every request sends flags in the second
+byte of the request.
+
+These are the possible flags, which can
+be mixed to fit to your need.
+""""    
     AUTOSAVE_CTX               1
 
 class StatusCode(IntEnum):
@@ -143,7 +150,7 @@ class NeoBeeShell:
 
     def get_version(self):
         self._clearbuffer()
-        self._buffer[0] = CmdCode.GET_VERSION
+        self._cmd = CmdCode.GET_VERSION
         self._send()
         return (self[0],self[1],self[2])
 
@@ -226,13 +233,10 @@ class NeoBeeShell:
             raise ValueError("Name to long. Max length is 20")
 
         for index, char in enumerate(name):
-            self._buffer[index+1] = ord(char)
+            self[index] = ord(char)
 
         self._print_buffer()
         self._send()
-
-         
-
 
 with NeoBeeShell() as shell:
     print("Version: ", shell.get_version())

@@ -12,8 +12,8 @@
 #include <DallasTemperature.h>
 #include <Adafruit_NeoPixel.h>
 
-// Known Flags
 
+// Request Flags
 #define FLAG_OFFSET_SET           0
 #define FLAG_FACTOR_SET           1
 #define FLAG_GAIN_SET             2
@@ -23,6 +23,7 @@
 #define DEEP_SLEEP_SET            6
 #define WIFI_NETWORK_SET          7
 
+// Response F
 // Data strucure to store relevant information
 // between two deep sleep cycles
 //
