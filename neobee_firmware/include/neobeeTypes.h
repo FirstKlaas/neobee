@@ -72,7 +72,7 @@ typedef struct context {
   inline void setName(const uint8_t* new_name)
   {
     memcpy(name, new_name, sizeof(name));
-    flags |= FLAG_NAME_SET;
+    bitSet(flags, FLAG_NAME_SET);
   }
 
   void reset() {

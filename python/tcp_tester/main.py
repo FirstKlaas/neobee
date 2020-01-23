@@ -22,25 +22,25 @@ class CmdCode(IntEnum):
 
 class StatusFlag(IntFlag):
 
-    FLAG_OFFSET_SET            1
-    FLAG_FACTOR_SET            2
-    FLAG_GAIN_SET              4
-    FLAG_NAME_SET              8
-    FLAG_ADDR_INSIDE_SET      16
-    FLAG_ADDR_OUTSIDE_SET     32
-    DEEP_SLEEP_SET            64
-    WIFI_NETWORK_SET         128
+    FLAG_OFFSET_SET        =    1
+    FLAG_FACTOR_SET        =    2
+    FLAG_GAIN_SET          =    4
+    FLAG_NAME_SET          =    8
+    FLAG_ADDR_INSIDE_SET   =   16
+    FLAG_ADDR_OUTSIDE_SET  =   32
+    DEEP_SLEEP_SET         =   64
+    WIFI_NETWORK_SET       =  128
 
 
 class RequestFlag(IntFlag):
-"""
-Every request sends flags in the second
-byte of the request.
+    """
+    Every request sends flags in the second
+    byte of the request.
 
-These are the possible flags, which can
-be mixed to fit to your need.
-""""    
-    AUTOSAVE_CTX               1
+    These are the possible flags, which can
+    be mixed to fit to your need.
+    """
+    AUTOSAVE_CTX           =    1
 
 class StatusCode(IntEnum):
     OK = 20,
@@ -221,7 +221,10 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.GET_NAME
         self._send()
-        self._print_buffer()
+        if self._status == StatusCode.OK:
+            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode("ascii")
+        else:
+            return None
 
     def set_name(self, name:str):
         self._clearbuffer()
@@ -235,17 +238,16 @@ class NeoBeeShell:
         for index, char in enumerate(name):
             self[index] = ord(char)
 
-        self._print_buffer()
         self._send()
 
 with NeoBeeShell() as shell:
-    print("Version: ", shell.get_version())
-    print("Offset: ", shell.get_scale_offset())
+    print("Version     : ", shell.get_version())
+    print("Offset      : ", shell.get_scale_offset())
     shell.set_scale_offset(666.66)
-    print("Offset; ", shell.get_scale_offset())
-    print("Factor: ", shell.get_scale_factor())
+    print("Offset      : ", shell.get_scale_offset())
+    print("Factor      : ", shell.get_scale_factor())
     shell.set_scale_factor(12.33)
-    print("Factor: ", shell.get_scale_factor())
-    print("MAc: ", shell.get_mac_address())
+    print("Factor      : ", shell.get_scale_factor())
+    print("MAC Address : ", shell.get_mac_address())
     shell.set_name('Klaas')
-    shell.get_name()
+    print("Name        : ", shell.get_name())
