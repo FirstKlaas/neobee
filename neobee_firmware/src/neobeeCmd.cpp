@@ -59,14 +59,19 @@ inline uint32_t readInt32(uint8_t* dst)
     return (dst[0] << 24) + (dst[1] << 16) + (dst[2] << 8) + (dst[3]); 
 }
 
-void NeoBeeCmd::handleCommand(WiFiClient& client) {
+inline void printByteArray(const uint8_t* buffer, const uint8_t size = 32)
+{
     #ifdef DEBUG
-    for (uint8_t i=0; i<32; i++) {
-        Serial.print(m_buffer[i], HEX);
+    for (uint8_t i=0; i<size; i++) {
+        Serial.print(buffer[i], HEX);
         Serial.print(":");
     }
     Serial.println();
     #endif
+}
+
+void NeoBeeCmd::handleCommand(WiFiClient& client) {
+    printByteArray(m_buffer);
     CmdCode cmd = getCommand();
     switch (cmd) {
         case CmdCode::NOP:
@@ -79,6 +84,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
         case CmdCode::GET_NAME:
             #ifdef DEBUG 
             Serial.println("GET_NAME Request");
+            printByteArray(m_ctx.name, 20);
             #endif
             clearBuffer(CmdCode::GET_NAME, StatusCode::OK);
             if (m_ctx.hasName()) {
@@ -91,14 +97,11 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
 
         case CmdCode::SET_NAME:
             #ifdef DEBUG 
-            Serial.println("SET_NAME_ADDRESS Request");
+            Serial.println("SET_NAME Request");
             #endif
-            /**
-             * Wie verhaelt es sich mit 0 Terminierungen
-             * und Laengen? Das array für den Namen des device
-             * im Context muss nicht 0 terminiert sein.
-             **/
-            strncpy(m_ctx.name, (char*) (m_buffer+1), sizeof(m_ctx.name));
+            printByteArray(m_ctx.name, 20);
+            m_ctx.setName(m_buffer+1);
+            printByteArray(m_ctx.name, 20);
             clearBuffer(CmdCode::SET_NAME, StatusCode::OK);
             break;
 

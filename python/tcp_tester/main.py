@@ -67,6 +67,20 @@ def myreceive(sckt, handler=None, max_tries=10, delay=10):
         if handler is not None:
             handler(response)
 
+class MacAddress:
+
+    def __init__(self):
+        self._addr = bytearray(6)
+
+    def __getitem__(self, index:int) -> int:
+        return self._addr[index]
+
+    def __setitem__(self, index:int, val:int):
+        self._addr[index] = val
+
+    def __str__(self):
+        return ':'.join("{:02x}".format(x) for x in self._addr)
+
 class NeoBeeShell:
 
     def __init__(self, host="192.168.4.1", port=8888):
@@ -173,6 +187,39 @@ class NeoBeeShell:
         self[3] = (iValue) & 0xff
         self._send()
 
+    def get_mac_address(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_MAC_ADDRESS
+        self._send()
+        mac = MacAddress()
+        for i in range(6):
+            mac[i] = self[i]
+        return mac
+    
+    def get_name(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_NAME
+        self._send()
+        self._print_buffer()
+
+    def set_name(self, name:str):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_NAME
+        if not name:
+            raise ValueError("No name provided")
+
+        if len(name) > 20:
+            raise ValueError("Name to long. Max length is 20")
+
+        for index, char in enumerate(name):
+            self._buffer[index+1] = ord(char)
+
+        self._print_buffer()
+        self._send()
+
+         
+
+
 with NeoBeeShell() as shell:
     print("Version: ", shell.get_version())
     print("Offset: ", shell.get_scale_offset())
@@ -181,3 +228,6 @@ with NeoBeeShell() as shell:
     print("Factor: ", shell.get_scale_factor())
     shell.set_scale_factor(12.33)
     print("Factor: ", shell.get_scale_factor())
+    print("MAc: ", shell.get_mac_address())
+    shell.set_name('Klaas')
+    shell.get_name()

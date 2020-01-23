@@ -42,8 +42,8 @@ typedef struct {
 } Temperature;
 
 typedef struct context {
-  char magic_bytes[6];
-  char name[20];
+  uint8_t magic_bytes[6];
+  uint8_t name[20];
   uint8_t flags;
   uint16_t deep_sleep_seconds;
   Scale scale;
@@ -60,6 +60,12 @@ typedef struct context {
   inline bool hasFactor() const { return _flag(FLAG_FACTOR_SET); };
   inline bool hasAddrInside() const { return _flag(FLAG_ADDR_INSIDE_SET); };
   inline bool hasAddrOutside() const { return _flag(FLAG_ADDR_OUTSIDE_SET); };
+
+  inline void setName(const uint8_t* new_name)
+  {
+    memcpy(name, new_name, sizeof(name));
+    flags |= FLAG_NAME_SET;
+  }
 
   void reset() {
     strncpy(magic_bytes, "NEOBEE", 6);
@@ -123,12 +129,13 @@ typedef struct context {
 
   void print() const {
     #ifdef DEBUG
+    /**
     Serial.print("Name        : ");
     Serial.println(name);
     
     Serial.print("Magic Bytes : ");
     Serial.println(magic_bytes);
-
+    **/
     Serial.print("Offset      : ");
     Serial.println(scale.offset);
     
