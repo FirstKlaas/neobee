@@ -21,6 +21,7 @@
 #define FLAG_ADDR_INSIDE_SET      4
 #define FLAG_ADDR_OUTSIDE_SET     5
 #define DEEP_SLEEP_SET            6
+#define WIFI_NETWORK_SET          7
 
 // Data strucure to store relevant information
 // between two deep sleep cycles
@@ -41,6 +42,11 @@ typedef struct {
   DeviceAddress addr_outside;
 } Temperature;
 
+typedef struct {
+  char ssid[32];
+  char password[32];
+} WifiNetwork;
+
 typedef struct context {
   uint8_t magic_bytes[6];
   uint8_t name[20];
@@ -49,6 +55,7 @@ typedef struct context {
   Scale scale;
   Temperature temperature;
   MqttServer mqttServer;
+  WifiNetwork wifi_network;
 
   context() {
     reset();
@@ -68,7 +75,7 @@ typedef struct context {
   }
 
   void reset() {
-    strncpy(magic_bytes, "NEOBEE", 6);
+    memcpy(magic_bytes, "NEOBEE", 6);
     flags=0;
     memset(name,0,sizeof(name));
     scale.offset = 0.f;
@@ -82,7 +89,7 @@ typedef struct context {
     EEPROM.begin(4095);
     EEPROM.get(0, this);
     EEPROM.end();
-    if (strncmp(magic_bytes, "NEOBEE", 6) == 0) {
+    if (memcmp(magic_bytes, "NEOBEE", 6) == 0) {
       #ifdef DEBUG
       Serial.println("Context loaded successfully");
       #endif
