@@ -181,4 +181,27 @@ typedef struct context {
 
 const uint8_t ContextSize = sizeof(Context);
 
+inline void writeInt32(uint32_t value, uint8_t* dst) {
+    dst[0] = (value >> 24) & 0xff;
+    dst[1] = (value >> 16) & 0xff;
+    dst[2] = (value >> 8) & 0xff;
+    dst[3] = value & 0xff;
+}
+
+inline uint32_t readInt32(uint8_t* dst)
+{
+    return (dst[0] << 24) + (dst[1] << 16) + (dst[2] << 8) + (dst[3]); 
+}
+
+inline void printByteArray(const uint8_t* buffer, const uint8_t size = 32)
+{
+    #ifdef DEBUG
+    for (uint8_t i=0; i<size; i++) {
+        Serial.print(buffer[i], HEX);
+        Serial.print(":");
+    }
+    Serial.println();
+    #endif
+}
+
 #endif

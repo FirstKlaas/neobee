@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, IntFlag
 import socket
 from binascii import hexlify
 
@@ -20,11 +20,25 @@ class CmdCode(IntEnum):
     CALIBRATE        = 201,
     GET_WEIGHT       = 202
 
+class ResponseFlag(IntFlag):
+
+    FLAG_OFFSET_SET            1
+    FLAG_FACTOR_SET            2
+    FLAG_GAIN_SET              4
+    FLAG_NAME_SET              8
+    FLAG_ADDR_INSIDE_SET      16
+    FLAG_ADDR_OUTSIDE_SET     32
+    DEEP_SLEEP_SET            64
+    WIFI_NETWORK_SET         128
+
+class ResquestFlag(IntFlag):
+
+    AUTOSAVE_CTX               1
+
 class StatusCode(IntEnum):
     OK = 20,
     BAD_REQUEST = 40,
     NOT_FOUND = 44
-
 
 class Response:
 
