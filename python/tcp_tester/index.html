@@ -7,14 +7,28 @@
             <h1>{{ title }}</h1>
             <div v-if="is_admin">Admin</div>
             <button v-on:click="doSomething">Huhu</button>
+            <dings-bumms
+                v-for="school in schools"
+                v-bind:school="school"
+                v-bind:key="school.id"
+            ></dings-bumms>
         </div>
         
         <script>
+            Vue.component('dings-bumms', {
+                template: '<p><b>{{ school.name }}</b></p>',
+                props: ['school']
+            });
+
             var app = new Vue({
                 el: '#app',
                 data: {
                     title: "Hello Vue",
-                    is_admin: true
+                    is_admin: true,
+                    schools: [
+                        { id:1, name: 'TGG'},
+                        { id:2, name: 'UEG'}
+                    ]
                 },
                 methods: {
                     doSomething: function() {
