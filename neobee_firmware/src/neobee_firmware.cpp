@@ -92,12 +92,14 @@ void setup() {
   
   #ifdef DEBUG
     Serial.begin(SERIAL_SPEED);
+    delay(1000);
+    while(!Serial) {
+    };
     Serial.println("#############################################");
     Serial.println("# NeoBee - Hive Data Logger                 #");
     Serial.println("#############################################");
   #endif
 
-  delay(2000);
   if (ctx.load()) {
     #ifdef DEBUG
     Serial.println("Context restored");
@@ -107,6 +109,13 @@ void setup() {
     Serial.println("Context created");
     #endif
   }
+  
+  #ifdef DEBUG
+  Serial.print("Configuration Size: ");
+  Serial.print(sizeof(ctx));
+  Serial.println(" bytes");
+  #endif
+
   //ctx.flags = 0;
   /**
   scale.begin();

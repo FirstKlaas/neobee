@@ -23,36 +23,81 @@
 #define DEEP_SLEEP_SET            6
 #define WIFI_NETWORK_SET          7
 
-// Response F
+
+enum class CmdCode : uint8_t {
+    NOP              =   0,
+    GET_NAME         =   1,
+    SET_NAME         =   2,
+    GET_FLAGS        =   3,
+    RESET_SETTINGS   =   4,
+    SAVE_SETTINGS    =   5,
+    DELETE_SETTINGS  =   6,
+
+    GET_SCALE_OFFSET =  10,
+    SET_SCALE_OFFSET =  11,
+    GET_SCALE_FACTOR =  12,
+    SET_SCALE_FACTOR =  13,
+
+    GET_SSID         =  20,
+    SET_SSID         =  21,
+    GET_PASSWORD     =  22,
+    SET_PASSWORD     =  23,
+
+    GET_MQTT_HOST    =  30,
+    SET_MQTT_HOST    =  31,
+    GET_MQTT_PORT    =  32,
+    SET_MQTT_PORT    =  33,
+    GET_MQTT_FLAGS   =  34,
+
+    GET_MAC_ADDRESS  =  80,
+    GET_VERSION      =  81,
+    SET_IDLE_TIME    =  82,
+    GET_IDLE_TIME    =  83, 
+    TARE             = 200,
+    CALIBRATE        = 201,
+    GET_WEIGHT       = 202
+};
+
+enum class StatusCode : uint8_t {
+    NONE         =  0,
+    OK           = 20,
+    BAD_REQUEST  = 40,
+    NOT_FOUND    = 44
+};
+
 // Data strucure to store relevant information
 // between two deep sleep cycles
 //
 typedef struct {
-  char host_name[32];
-  uint16_t port;
+  uint8_t flags;                    // Mqtt Flags
+  char host_name[31];               // 0-terminated hostname or ip of the mqtt server
+  uint16_t port;                    // mqtt port
 } MqttServer;
 
 typedef struct {
-  double offset;
-  float factor;
-  uint8_t gain;
+  double offset;                    // The offset as a result of taring the load cell
+  float factor;                     // Factor to be used to convert readings into units
+  uint8_t gain;                     // Which channel to select.
 } Scale;
 
 typedef struct {
-  DeviceAddress addr_inside;
-  DeviceAddress addr_outside;
+  uint8_t flags;                    // Temperature flags
+  DeviceAddress addr_inside;        // Address of the inside temperature sensor
+  DeviceAddress addr_outside;       // Address of the outside temperature sensor
 } Temperature;
 
 typedef struct {
-  char ssid[32];
-  char password[32];
+  uint8_t flags;                    // Wifi flags
+  char ssid[31];                    // 0-terminated name of the wifi network
+  char password[31];                // 0-terminated password
 } WifiNetwork;
 
 typedef struct context {
-  uint8_t magic_bytes[6];
-  uint8_t name[20];
+  uint8_t magic_bytes[6];           // Must be NEOBEE for a valid data block
+  uint8_t name[20];                 // Human readable name of the device
   uint8_t flags;
-  uint16_t deep_sleep_seconds;
+  uint16_t deep_sleep_seconds;      // Seconds to go to sleep
+
   Scale scale;
   Temperature temperature;
   MqttServer mqttServer;

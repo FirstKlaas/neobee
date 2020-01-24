@@ -8,31 +8,6 @@
 
 #define BUFFER_SIZE 32
 
-enum class CmdCode : uint8_t {
-    NOP              =   0,
-    GET_NAME         =   1,
-    SET_NAME         =   2,
-    GET_FLAGS        =   3,
-    GET_SCALE_OFFSET =  10,
-    SET_SCALE_OFFSET =  11,
-    GET_SCALE_FACTOR =  12,
-    SET_SCALE_FACTOR =  13,
-
-    GET_MAC_ADDRESS  =  80,
-    GET_VERSION      =  81,
-    SET_IDLE_TIME    =  82,
-    GET_IDLE_TIME    =  83, 
-    TARE             = 200,
-    CALIBRATE        = 201,
-    GET_WEIGHT       = 202
-};
-
-enum class StatusCode : uint8_t {
-    NONE         =  0,
-    OK           = 20,
-    BAD_REQUEST  = 40,
-    NOT_FOUND    = 44
-};
 
 class NeoBeeCmd
 {
