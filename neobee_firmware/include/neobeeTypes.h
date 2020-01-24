@@ -106,6 +106,14 @@ typedef struct wifi_network {
     reset();
   };
 
+  inline bool canConnect() const {
+    return hasPassword() & hasSSID() & isActive();
+  }
+
+  inline bool isActive() const {
+    return bitRead(flags, int(WifiFlags::FLAG_ACTIVE));
+  }
+
   inline bool hasPassword() const {
     return bitRead(flags, int(WifiFlags::FLAG_PASSWORD_SET));
   }
@@ -117,7 +125,7 @@ typedef struct wifi_network {
     bitSet(flags, int(WifiFlags::FLAG_PASSWORD_SET));
   }
 
-  inline void getPassword(uint8_t* dst) {
+  inline void getPassword(uint8_t* dst) const {
     const uint8_t size = sizeof(password)-1;
     if (hasPassword()) memcpy(dst, password, size);
   }
@@ -138,7 +146,7 @@ typedef struct wifi_network {
     bitSet(flags, int(WifiFlags::FLAG_SSID_SET));
   }
 
-  inline void getSSID(uint8_t* dst) {
+  inline void getSSID(uint8_t* dst) const {
     const uint8_t size = sizeof(ssid)-1;
     if (hasSSID()) memcpy(dst, ssid, size);
   }
