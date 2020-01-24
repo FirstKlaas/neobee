@@ -112,7 +112,7 @@ void setup() {
   
   #ifdef DEBUG
   Serial.print("Configuration Size: ");
-  Serial.print(sizeof(ctx));
+  Serial.print((uint8_t) sizeof(ctx));
   Serial.println(" bytes");
   #endif
 

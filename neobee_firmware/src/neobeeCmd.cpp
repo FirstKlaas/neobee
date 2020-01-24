@@ -259,6 +259,65 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             writeInt32(weight, m_data_space);
             break;
 
+        case CmdCode::SAVE_SETTINGS:
+            /**
+             * SAVE_SETTINGS command
+             * 
+             * Saves the settings to EEPROM without any checks,
+             * if data is valid.
+             **/
+            m_ctx.save();
+            break;
+
+        case CmdCode::RESET_SETTINGS:
+            m_ctx.reset();
+            break;
+
+        case CmdCode::ERASE_SETTINGS:
+            m_ctx.erase();
+            break;
+
+        case CmdCode::GET_SSID:
+            clearBuffer(CmdCode::GET_SSID, StatusCode::OK);
+            if (m_ctx.wifi_network.hasSSID()) {
+                m_ctx.wifi_network.getSSID(m_data_space);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            };
+            break;
+
+        case CmdCode::SET_SSID:
+            m_ctx.wifi_network.setSSID(m_data_space);
+            clearBuffer(CmdCode::SET_SSID, StatusCode::OK);
+            break;
+
+        case CmdCode::CLEAR_SSID:
+            clearBuffer(CmdCode::CLEAR_SSID, StatusCode::OK);
+            m_ctx.wifi_network.clearSSID();
+    	    break;
+
+        case CmdCode::GET_PASSWORD:
+            clearBuffer(CmdCode::GET_PASSWORD, StatusCode::OK);
+            if (m_ctx.wifi_network.hasPassword()) {
+                m_ctx.wifi_network.getPassword(m_data_space);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            }
+            break;
+        
+        case CmdCode::SET_WIFI_ACTIVE:
+            bitWrite(
+                m_ctx.wifi_network.flags, 
+                int(WifiFlags::FLAG_ACTIVE), 
+                m_data_space[0] & 1); 
+            clearBuffer(CmdCode::SET_WIFI_ACTIVE, StatusCode::OK);
+            break;
+
+        case CmdCode::CLEAR_PASSWORD:
+            clearBuffer(CmdCode::CLEAR_PASSWORD, StatusCode::OK);
+            m_ctx.wifi_network.clearPassword();
+            break;
+
         default:
             #ifdef DEBUG 
             Serial.println("Unknown Command");

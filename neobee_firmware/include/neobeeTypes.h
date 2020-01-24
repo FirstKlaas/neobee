@@ -13,7 +13,7 @@
 #include <Adafruit_NeoPixel.h>
 
 
-// Request Flags
+// Global FLAGS
 #define FLAG_OFFSET_SET           0
 #define FLAG_FACTOR_SET           1
 #define FLAG_GAIN_SET             2
@@ -21,48 +21,58 @@
 #define FLAG_ADDR_INSIDE_SET      4
 #define FLAG_ADDR_OUTSIDE_SET     5
 #define DEEP_SLEEP_SET            6
-#define WIFI_NETWORK_SET          7
 
+enum class WifiFlags : uint8_t {
+  FLAG_SSID_SET     = 1,
+  FLAG_PASSWORD_SET = 2,
+  FLAG_ACTIVE       = 4
+};
 
 enum class CmdCode : uint8_t {
-    NOP              =   0,
-    GET_NAME         =   1,
-    SET_NAME         =   2,
-    GET_FLAGS        =   3,
-    RESET_SETTINGS   =   4,
-    SAVE_SETTINGS    =   5,
-    DELETE_SETTINGS  =   6,
+  NOP              =   0,
+  GET_NAME         =   1,
+  SET_NAME         =   2,
+  GET_FLAGS        =   3,
+  RESET_SETTINGS   =   4,
+  SAVE_SETTINGS    =   5,
+  ERASE_SETTINGS   =   6,
 
-    GET_SCALE_OFFSET =  10,
-    SET_SCALE_OFFSET =  11,
-    GET_SCALE_FACTOR =  12,
-    SET_SCALE_FACTOR =  13,
+  GET_SCALE_OFFSET =  10,
+  SET_SCALE_OFFSET =  11,
+  GET_SCALE_FACTOR =  12,
+  SET_SCALE_FACTOR =  13,
 
-    GET_SSID         =  20,
-    SET_SSID         =  21,
-    GET_PASSWORD     =  22,
-    SET_PASSWORD     =  23,
+  GET_SSID         =  20,
+  SET_SSID         =  21,
+  CLEAR_SSID       =  22,
+  GET_PASSWORD     =  23,
+  SET_PASSWORD     =  24,
+  CLEAR_PASSWORD   =  25,
+  SET_WIFI_ACTIVE  =  26,
+  GET_WIFI_FLAGS   =  27,
 
-    GET_MQTT_HOST    =  30,
-    SET_MQTT_HOST    =  31,
-    GET_MQTT_PORT    =  32,
-    SET_MQTT_PORT    =  33,
-    GET_MQTT_FLAGS   =  34,
+  GET_MQTT_HOST    =  30,
+  SET_MQTT_HOST    =  31,
+  GET_MQTT_PORT    =  32,
+  SET_MQTT_PORT    =  33,
+  SET_MQTT_ACTIVE  =  36,
+  GET_MQTT_FLAGS   =  37,
 
-    GET_MAC_ADDRESS  =  80,
-    GET_VERSION      =  81,
-    SET_IDLE_TIME    =  82,
-    GET_IDLE_TIME    =  83, 
-    TARE             = 200,
-    CALIBRATE        = 201,
-    GET_WEIGHT       = 202
+  GET_MAC_ADDRESS  =  80,
+  GET_VERSION      =  81,
+  SET_IDLE_TIME    =  82,
+  GET_IDLE_TIME    =  83, 
+
+  TARE             = 200,
+  CALIBRATE        = 201,
+  GET_WEIGHT       = 202
 };
 
 enum class StatusCode : uint8_t {
-    NONE         =  0,
-    OK           = 20,
-    BAD_REQUEST  = 40,
-    NOT_FOUND    = 44
+  NONE             =  0,
+  OK               = 20,
+  BAD_REQUEST      = 40,
+  NOT_FOUND        = 44
 };
 
 // Data strucure to store relevant information
@@ -86,10 +96,65 @@ typedef struct {
   DeviceAddress addr_outside;       // Address of the outside temperature sensor
 } Temperature;
 
-typedef struct {
+typedef struct wifi_network {
   uint8_t flags;                    // Wifi flags
   char ssid[31];                    // 0-terminated name of the wifi network
   char password[31];                // 0-terminated password
+  uint8_t channel;
+
+  wifi_network() {
+    reset();
+  };
+
+  inline bool hasPassword() const {
+    return bitRead(flags, int(WifiFlags::FLAG_PASSWORD_SET));
+  }
+
+  inline void setPassword(const uint8_t* data) {
+    const uint8_t size = sizeof(password)-1;
+    memcpy(password, data, size);
+    password[size] = 0; // Make shure the array is 0 terminated
+    bitSet(flags, int(WifiFlags::FLAG_PASSWORD_SET));
+  }
+
+  inline void getPassword(uint8_t* dst) {
+    const uint8_t size = sizeof(password)-1;
+    if (hasPassword()) memcpy(dst, password, size);
+  }
+
+  inline void clearPassword() {
+    memset(password, 0, sizeof(password));
+    bitClear(flags, int(WifiFlags::FLAG_PASSWORD_SET));
+  }
+
+  inline bool hasSSID() const {
+    return bitRead(flags, int(WifiFlags::FLAG_SSID_SET));
+  }
+  
+  inline void setSSID(const uint8_t* data) {
+    const uint8_t size = sizeof(ssid)-1;
+    memcpy(ssid, data, size);
+    ssid[size] = 0;
+    bitSet(flags, int(WifiFlags::FLAG_SSID_SET));
+  }
+
+  inline void getSSID(uint8_t* dst) {
+    const uint8_t size = sizeof(ssid)-1;
+    if (hasSSID()) memcpy(dst, ssid, size);
+  }
+
+  inline void clearSSID() {
+    memset(ssid, 0, sizeof(ssid));
+    bitClear(flags, int(WifiFlags::FLAG_SSID_SET));
+  }
+
+  inline void reset() {
+    flags = 0;
+    memset(ssid, 0, sizeof(ssid));
+    memset(password, 0, sizeof(password));
+    channel = 1;
+  }
+  
 } WifiNetwork;
 
 typedef struct context {

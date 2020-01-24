@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    </head>
+    <body>
+        <div id="app">
+            <h1>{{ title }}</h1>
+            <div v-if="is_admin">Admin</div>
+            <button v-on:click="doSomething">Huhu</button>
+        </div>
+        
+        <script>
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    title: "Hello Vue",
+                    is_admin: true
+                },
+                methods: {
+                    doSomething: function() {
+                        this.title = "Ich wurde gedrückt."
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
