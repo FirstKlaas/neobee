@@ -414,6 +414,13 @@ class NeoBeeShell:
         self._cmd = CmdCode.SET_WIFI_ACTIVE
         self._send()
 
+    def to_dict(self):
+        _d = {}
+        _d['name'] = self.get_name()
+        _d['mac_address'] = self.get_mac_address().__str__()
+        _d['scale_offset'] = self.get_scale_offset()
+        _d["scale_factor"] = self.get_scale_factor()
+        return _d
 
 #with NeoBeeShell() as shell:
 
@@ -421,20 +428,6 @@ with NeoBeeShell(host="192.168.178.48") as shell:
     print("SSID : ", shell.ssid)
     print("Version         : ", shell.get_version())
     
-    print("Reading Offset  : ", shell.get_scale_offset())
-    print("Setting Offset to 666")
-    shell.set_scale_offset(666)
-    print("Reading Offset  : ", shell.get_scale_offset())
-    print("Reading Factor  : ", shell.get_scale_factor())
-    shell.set_scale_factor(12.33)
-    print("Factor          : ", shell.get_scale_factor())
-    print("MAC Address     : ", shell.get_mac_address())
-    shell.activate_wifi_sta()
-    shell.save_settings()
-    """
-    print("Setting devicename to Klaas")
-    shell.set_name('Klaas')
-    print("Reading Name    : ", shell.get_name())
-    shell.set_ssid("RepeaterOben24")
-    shell.set_password("4249789363748310")
-    """
+    #shell.activate_wifi_sta()
+    #shell.save_settings()
+    print(shell.to_dict())
