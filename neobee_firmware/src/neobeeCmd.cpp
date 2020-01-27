@@ -7,7 +7,7 @@ const char *ssid = "NeoBee";
 const char *password = "sumsum";
 
 #define HEADSIZE 2
-
+ 
 NeoBeeCmd::NeoBeeCmd(
     Context& ctx, 
     NeoBeeScale& scale, 
@@ -40,7 +40,8 @@ void NeoBeeCmd::sendResponse(WiFiClient& client, bool flush) {
 }
 
 void NeoBeeCmd::handleCommand(WiFiClient& client) {
-    printByteArray(m_buffer);
+    //printByteArray(m_buffer);
+
     CmdCode cmd = getCommand();
     switch (cmd) {
         case CmdCode::NOP:
@@ -53,7 +54,6 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
         case CmdCode::GET_NAME:
             #ifdef DEBUG 
             Serial.println("GET_NAME Request");
-            printByteArray(m_ctx.name, 20);
             #endif
             clearBuffer(CmdCode::GET_NAME, StatusCode::OK);
             if (m_ctx.hasName()) {
@@ -68,9 +68,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("SET_NAME Request");
             #endif
-            printByteArray(m_ctx.name, 20);
             m_ctx.setName(m_data_space);
-            printByteArray(m_ctx.name, 20);
             clearBuffer(CmdCode::SET_NAME, StatusCode::OK);
             break;
 
@@ -84,7 +82,6 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 Serial.println("Write offset to data space");
                 #endif
                 writeInt32(int(m_scale.getOffset() * 100.0 + 0.5), m_data_space);
-                printByteArray(m_buffer);
             } else {
                 setStatus(StatusCode::NOT_FOUND);
             }

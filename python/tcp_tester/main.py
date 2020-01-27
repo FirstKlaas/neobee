@@ -125,6 +125,12 @@ class MacAddress:
     def __str__(self):
         return ':'.join("{:02x}".format(x) for x in self._addr)
 
+class NotConnectedError(Exception):
+    pass
+
+class AlreadyConnectedError(Exception):
+    pass
+
 class NeoBeeShell:
 
     def __init__(self, host="192.168.4.1", port=8888):
@@ -132,22 +138,49 @@ class NeoBeeShell:
         self.host = host
         self.port = port
         self._buffer = bytearray(32)
-
+        self._connected = False
 
     def __enter__(self):
-        print(f"Connecting to {self.host}:{self.port}")
         self._socket.connect((self.host, self.port))
+        self._connected = True
         return self
 
     def __exit__(self, type, value, traceback):
-        print("Closing connection")
-        #self._socket.shutdown(1)
+        self._socket.shutdown(1)
         self._socket.close()
+        self._connected = False
+
+    def connected(self):
+        return self._connected
+
+    def connect(self):
+        if self.connected:
+            raise AlreadyConnectedError()
+
+        self.__enter__()
+
+    def disconnect(self):
+        if not self.connected:
+            raise NotConnectedError()
+
+        self.__exit__()
 
     def _clearbuffer(self):
         self._buffer[:] = [0] * 32
 
+    def _buffer_to_string(self):
+        return bytearray(filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])).decode("ascii")
+    
+    def _string_to_buffer(self, val: str):
+        if not val: return
+
+        for index, char in enumerate(val):
+            self[index] = ord(char)
+
     def _receive(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         bytes_recd = 0        
         while bytes_recd < 32:
             chunk = self._socket.recv(min(32 - bytes_recd, 32))
@@ -158,6 +191,9 @@ class NeoBeeShell:
             bytes_recd = bytes_recd + len(chunk)
 
     def _send(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._socket.send(self._buffer)
         self._receive()
 
@@ -171,6 +207,9 @@ class NeoBeeShell:
         self._buffer[index+2] = (value & 0xff)
 
     def get_version(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.GET_VERSION
         self._send()
@@ -189,6 +228,9 @@ class NeoBeeShell:
         return self._buffer[1]
 
     def get_scale_offset(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.GET_SCALE_OFFSET
         self._send()
@@ -201,6 +243,9 @@ class NeoBeeShell:
             raise RuntimeError()
 
     def set_scale_offset(self, value: float):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.SET_SCALE_OFFSET
         iValue = int(value*100)
@@ -211,6 +256,9 @@ class NeoBeeShell:
         self._send()
 
     def get_scale_factor(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.GET_SCALE_FACTOR
         self._send()
@@ -222,6 +270,9 @@ class NeoBeeShell:
             raise RuntimeError()
 
     def set_scale_factor(self, value: float):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.SET_SCALE_FACTOR
         iValue = int(value*100)
@@ -232,6 +283,9 @@ class NeoBeeShell:
         self._send()
 
     def get_mac_address(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.GET_MAC_ADDRESS
         self._send()
@@ -249,6 +303,9 @@ class NeoBeeShell:
         self.set_name(name)
     
     def get_name(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.GET_NAME
         self._send()
@@ -258,6 +315,9 @@ class NeoBeeShell:
             return None
 
     def set_name(self, name:str):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.SET_NAME
         if not name:
@@ -266,71 +326,99 @@ class NeoBeeShell:
         if len(name) > 20:
             raise ValueError("Name to long. Max length is 20")
 
-        for index, char in enumerate(name):
-            self[index] = ord(char)
-
+        self._string_to_buffer(name)
         self._send()
 
     def save_settings(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.SAVE_SETTINGS
         self._send()
 
     def erase_settings(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.ERASE_SETTINGS
         self._send()
     
     def reset_settings(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.RESET_SETTINGS
         self._send()
 
-    def set_ssid(self, ssid:str):
-        print("Setting ssid to ", ssid)
-        self._clearbuffer()
-        self._cmd = CmdCode.SET_SSID
-        for index, char in enumerate(ssid):
-            self[index] = ord(char)
-        self._print_buffer()
-        self._send()
+    @property
+    def ssid(self) -> str:
+        if not self.connected:
+            raise NotConnectedError()
 
-    def get_ssid(self):
         self._clearbuffer()
         self._cmd = CmdCode.GET_SSID
         self._send()
         if self._status == StatusCode.OK:
-
-            return bytearray(filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])).decode("ascii")
+            return self._buffer_to_string()
         else:
             return None
 
+    @ssid.setter
+    def ssid(self, val:str):
+        if not self.connected:
+            raise NotConnectedError()
+
+        self._clearbuffer()
+        if not val:
+            self._cmd = CmdCode.CLEAR_SSID
+        else:
+            self._cmd = CmdCode.SET_SSID
+            self._string_to_buffer(ssid)
+            
+        self._send()
+
     def clear_password(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.CLEAR_PASSWORD
         self._send()
 
     def set_password(self, password:str):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.SET_PASSWORD
-        for index, char in enumerate(password):
-            self[index] = ord(char)
+        self._string_to_buffer(password)
         self._send()
 
     def activate_wifi_sta(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.SET_WIFI_ACTIVE
         self[0] = 1
         self._send()
 
     def deactivate_wifi_sta(self):
+        if not self.connected:
+            raise NotConnectedError()
+
         self._clearbuffer()
         self._cmd = CmdCode.SET_WIFI_ACTIVE
         self._send()
 
 
+#with NeoBeeShell() as shell:
+
 with NeoBeeShell(host="192.168.178.48") as shell:
-    print("SSID : ", shell.get_ssid())
+    print("SSID : ", shell.ssid)
     print("Version         : ", shell.get_version())
     
     print("Reading Offset  : ", shell.get_scale_offset())
@@ -341,12 +429,12 @@ with NeoBeeShell(host="192.168.178.48") as shell:
     shell.set_scale_factor(12.33)
     print("Factor          : ", shell.get_scale_factor())
     print("MAC Address     : ", shell.get_mac_address())
+    shell.activate_wifi_sta()
+    shell.save_settings()
     """
     print("Setting devicename to Klaas")
     shell.set_name('Klaas')
     print("Reading Name    : ", shell.get_name())
     shell.set_ssid("RepeaterOben24")
     shell.set_password("4249789363748310")
-    shell.activate_wifi_sta()
-    shell.save_settings()
     """

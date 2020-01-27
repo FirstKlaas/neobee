@@ -17,6 +17,7 @@
 #define ITERATIONS 10
 #define SERIAL_SPEED 9600
 #define MAX_WIFI_CONNECT_TRIES 50
+#define AP_SSID "NeoBee"
 
 Context ctx;
 
@@ -117,7 +118,7 @@ void setup() {
       #endif 
     }
     WiFi.mode(WIFI_AP);
-    bool success = WiFi.softAP("BumbleBees");
+    bool success = WiFi.softAP(AP_SSID);
     #ifdef DEBUG
     Serial.println(success);
     #endif 
