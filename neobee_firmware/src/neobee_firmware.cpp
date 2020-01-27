@@ -64,6 +64,8 @@ void setup() {
     mode = OperationMode::CMD_MODE;  
   }; 
 
+  mode = OperationMode::CMD_MODE;
+
   // Initialize the configuration data
   if (loadContext(&ctx)) {
     #ifdef DEBUG

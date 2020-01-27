@@ -27,7 +27,10 @@ typedef struct context {
   inline bool isDeepSleepEnabled() const { return _flag(FLAG_DEEP_SLEEP_SET); };
   inline void enableDeepSleep() { bitSet(flags, FLAG_DEEP_SLEEP_SET); };
   inline void disableDeepSleep() { bitClear(flags, FLAG_DEEP_SLEEP_SET); };
-  inline uint16_t getDeepSleepSeconds() { return deep_sleep_seconds > 0 ? deep_sleep_seconds : 30; }; 
+  inline uint16_t getDeepSleepSeconds() { return deep_sleep_seconds > 0 ? deep_sleep_seconds : 30; };
+  inline void setDeepSleepSeconds(uint8_t highbyte, uint8_t lowbyte) {
+    deep_sleep_seconds = ((highbyte << 8) | lowbyte);  
+  }  
   inline void setName(const uint8_t* new_name)
   {
     memcpy(name, new_name, sizeof(name));

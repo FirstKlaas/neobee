@@ -118,6 +118,14 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             m_data_space[0] = m_ctx.flags;
             break;
 
+        case CmdCode::GET_WIFI_FLAGS:
+            #ifdef DEBUG 
+            Serial.println("GET_WIFI_FLAGS Request");
+            #endif
+            clearBuffer(CmdCode::GET_WIFI_FLAGS, StatusCode::OK);
+            m_data_space[0] = m_ctx.wifi_network.flags;
+            break;
+
         case CmdCode::GET_SCALE_FACTOR:
             #ifdef DEBUG 
             Serial.println("GET_SCALE_FACTOR Request");
@@ -216,8 +224,16 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 0 : HIGH byte of the idle time
              * 1 : LOW byte of the idle time
              **/
+            m_ctx.setDeepSleepSeconds(m_data_space[0], m_data_space[1]);
+            #ifdef DEBUG
+            Serial.print("SET_IDLE_TIME ");
+            printByteArray(m_data_space, 4);
+            Serial.print("New value: ");
+            Serial.println(m_ctx.getDeepSleepSeconds());            
+            #endif
             clearBuffer(CmdCode::SET_IDLE_TIME, StatusCode::OK);
-            m_ctx.deep_sleep_seconds = (m_data_space[0] << 8) | m_data_space[1];
+            m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
+            m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
             break;
 
         case CmdCode::GET_IDLE_TIME:
@@ -230,11 +246,19 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 1 : LOW byte of the idle time
              **/
             clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
+            Serial.print("Get Idle Time - ");
+            Serial.println(m_ctx.getDeepSleepSeconds());
             m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
             m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
+            printByteArray(m_data_space, 32);
             break;
 
         case CmdCode::SET_DEEP_SLEEP:
+            #ifdef DEBUG
+            Serial.print("SET_DEEP_SLEEP (");
+            Serial.print(m_data_space[0]);
+            Serial.print(")");
+            #endif
             setStatus(StatusCode::OK);
             if (m_data_space[0] == 1) {
                 m_ctx.enableDeepSleep();
@@ -282,9 +306,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
 
         case CmdCode::GET_SSID:
             #ifdef DEBUG
-            Serial.println("GET SSID");
-            Serial.print("Flags : ");
-            Serial.println(m_ctx.wifi_network.flags, BIN);
+            Serial.println("GET SSID ");
             #endif
             clearBuffer(CmdCode::GET_SSID, StatusCode::OK);
             if (m_ctx.wifi_network.hasSSID()) {

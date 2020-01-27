@@ -50,10 +50,6 @@ typedef struct wifi_network {
     }
 
     inline bool hasSSID() const {
-        #ifdef DEBUG
-        Serial.print("Has ssid: ");
-        Serial.println(bitRead(flags, int(WifiFlags::FLAG_SSID_SET)));
-        #endif
         return bitRead(flags, int(WifiFlags::FLAG_SSID_SET));
     }
   
