@@ -221,7 +221,6 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             break;
 
         case CmdCode::GET_IDLE_TIME:
-
             /**
              * GET_IDLE_TIME command
              * 
@@ -231,8 +230,19 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 1 : LOW byte of the idle time
              **/
             clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
-            m_data_space[0] = (m_ctx.deep_sleep_seconds >> 8) & 0xff; // HIGH BYTE
-            m_data_space[1] = m_ctx.deep_sleep_seconds & 0xff;        // LOW BYTE
+            m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
+            m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
+            break;
+
+        case CmdCode::SET_DEEP_SLEEP:
+            setStatus(StatusCode::OK);
+            if (m_data_space[0] == 1) {
+                m_ctx.enableDeepSleep();
+            } else if (m_data_space[0] == 0) {
+                m_ctx.disableDeepSleep();
+            } else {
+                setStatus(StatusCode::BAD_REQUEST);
+            };
             break;
 
         case CmdCode::GET_WEIGHT:

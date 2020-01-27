@@ -20,7 +20,7 @@
 #define FLAG_NAME_SET             3
 #define FLAG_ADDR_INSIDE_SET      4
 #define FLAG_ADDR_OUTSIDE_SET     5
-#define DEEP_SLEEP_SET            6
+#define FLAG_DEEP_SLEEP_SET       6
 
 enum class OperationMode : uint8_t {
   IOT_MODE          = 1,  // Starting wifi in access point or station mode
