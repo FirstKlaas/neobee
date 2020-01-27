@@ -23,7 +23,7 @@
 #define DEEP_SLEEP_SET            6
 
 enum class OperationMode : uint8_t {
-  AP_MODE           = 1,  // Starting wifi in access point or station mode
+  IOT_MODE          = 1,  // Starting wifi in access point or station mode
   CMD_MODE          = 2   // Running in command mode or in broadcast mode
 };
 
@@ -67,6 +67,7 @@ enum class CmdCode : uint8_t {
   GET_VERSION      =  81,
   SET_IDLE_TIME    =  82,
   GET_IDLE_TIME    =  83, 
+  SET_DEEP_SLEEP   =  84, // Activating or deactivating deep sleep mode
 
   TARE             = 200,
   CALIBRATE        = 201,
@@ -80,7 +81,6 @@ enum class StatusCode : uint8_t {
   NOT_FOUND        =  3,
   ILLEGAL_STATE    =  4,
 };
-
 
 typedef struct {
   double offset;                    // The offset as a result of taring the load cell

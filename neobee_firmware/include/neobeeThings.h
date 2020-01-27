@@ -15,7 +15,6 @@ class NeoBeeButton
         const uint8_t m_pin;
 };
 
-
 class NeoBeeLED
 {
     public:
