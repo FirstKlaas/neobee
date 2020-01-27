@@ -12,24 +12,11 @@
  ************************************************/
 
 #include "neobee.h"
+#include "neobeeUtil.h"
 
 #define ITERATIONS 10
-
 #define SERIAL_SPEED 9600
-
-// HX711 circuit wiring
-
-// DeepSleep time in microseconds
-// If you set the number to 0, you need to trigger the
-// restart via the RST pin by setting it somehow to LOW
-const int DEEP_SLEEP_SECONDS = 30e6; // Equivalent to 30 seconds
-
-// The calibration factor has to be determined
-// for each load call and hx711 module combination
-// individually. This library has no support for
-// calibration. Check out the github page for more information.
-//const float scaleFactor = 21.8687258687f;
-const float scaleFactor = 21.66f;
+#define MAX_WIFI_CONNECT_TRIES 50
 
 Context ctx;
 
@@ -38,71 +25,36 @@ NeoBeeScale scale(ctx);
 NeoBeeCmd cmd(ctx, scale, temperature);
 Adafruit_NeoPixel pixels(1, D1, NEO_GRB + NEO_KHZ800);
 
+OperationMode mode = OperationMode::AP_MODE;
 
-void setupScaleOffset() {
-  #ifdef DEBUG
-  Serial.println("Setting up the offset of the scale (taring.");
-  Serial.println("Make sure, the scale is 'empty'. You've got 10 seconds to clear.");
-  #endif
+#define NBWiFi      ctx.wifi_network
+#define MEMSTART    0
+#define EEPROM_SIZE 4096
 
-  for (uint8_t i=0; i<10; i++) {
-    delay(1000);
-    #ifdef DEBUG
-    Serial.print("*");
-    #endif
-  }
-  #ifdef DEBUG
-  Serial.println("");
-  Serial.println("Reading offset. (Taring the scale.)");
-  #endif
-  scale.tare(ITERATIONS);
-  #ifdef DEBUG
-  Serial.print("Offset is: ");
-  #endif
-  Serial.println(scale.getOffset());
-}
-
-void setupScaleFactor() {
-
-  #ifdef DEBUG
-  Serial.println("Now calibrating the scale.");
-  Serial.println("Please put the reference weight onto the scale.");
-  Serial.println("You've got 10 seconds.");
-  #endif
-
-  for (uint8_t i=0; i<10; i++) {
-    delay(1000);
-    #ifdef DEBUG
-    Serial.print("*");
-    #endif
-  }
-  #ifdef DEBUG
-  Serial.println("");
-  #endif
-  scale.calibrate(ITERATIONS);
- }
+uint8_t test[6];
 
 void setup() {
-
-  pixels.begin();
-  pixels.setPixelColor(0, pixels.Color(0,151,0));
-  pixels.show();
-  
-  //bool contextChanged = false;
+  WiFi.disconnect();
+  WiFi.setAutoConnect(false);
+  WiFi.setAutoReconnect(false);
   
   #ifdef DEBUG
     Serial.begin(SERIAL_SPEED);
     delay(1000);
     while(!Serial) {
+      // Wait for serial connection
     };
+    delay(500);
     Serial.println("#############################################");
     Serial.println("# NeoBee - Hive Data Logger                 #");
     Serial.println("#############################################");
   #endif
 
-  if (ctx.load()) {
+  if (loadContext(&ctx)) {
     #ifdef DEBUG
     Serial.println("Context restored");
+    Serial.print("Wifi Flags: ");
+    Serial.println(ctx.wifi_network.flags);
     #endif
   } else {
     #ifdef DEBUG
@@ -116,35 +68,70 @@ void setup() {
   Serial.println(" bytes");
   #endif
 
-  //ctx.flags = 0;
-  /**
-  scale.begin();
-  temperature.begin();
-  
-  if (!scale.hasOffset()) {
-    setupScaleOffset();
-    contextChanged = true;
+  if(ctx.wifi_network.canConnect()) {
+    uint8_t number_of_tries(0);
+
+    WiFi.mode(WIFI_STA);
+
+    #ifdef DEBUG
+    Serial.print("Trying to connect to ");
+    Serial.println(NBWiFi.ssid);
+    Serial.print("Using password: ");
+    Serial.println(NBWiFi.password);
+    #endif
+    WiFi.begin(NBWiFi.ssid, NBWiFi.password);
+    while (!WiFi.isConnected() && number_of_tries < MAX_WIFI_CONNECT_TRIES) {
+      #ifdef DEBUG
+      Serial.print(".");
+      #endif
+      delay(500);
+      number_of_tries++;
+    };
+    #ifdef DEBUG
+    Serial.println();
+    if (WiFi.isConnected()) {
+      Serial.print("Succesfully connected to wifi after ");
+      Serial.print(number_of_tries);
+      Serial.println(" tries.");
+      Serial.print("NeoBee IP is ");
+      Serial.println(WiFi.localIP());
+    }
+    #endif
+  } else {
+    #ifdef DEBUG
+    Serial.println("No wifi information. Going directly into AP mode.");
+    #endif
+    WiFi.disconnect();
   };
 
-  if (!scale.hasFactor()) {
-    setupScaleFactor();
-    contextChanged = true;
-  };
-  if (contextChanged) {
-    ctx.save();
+  // Connecting to the network maybe failed.
+  // or no network settings have been provided.
+  // Starting as an accesspoint.
+  if (!WiFi.isConnected()) {  
+    #ifdef DEBUG
+    Serial.println("Acting as an accesspoint.");
+    #endif 
+    if (NBWiFi.canConnect()) {
+      #ifdef DEBUG
+      Serial.println("Could not connect. Switching to AP mode.");
+      #endif 
+    }
+    WiFi.mode(WIFI_AP);
+    bool success = WiFi.softAP("BumbleBees");
+    #ifdef DEBUG
+    Serial.println(success);
+    #endif 
+    
+    #ifdef DEBUG
+    IPAddress myIP = WiFi.softAPIP();
+    Serial.print("AP IP address: ");
+    Serial.println(myIP);
+    #endif 
   }
-  ctx.print(); 
-  ESP.deepSleep(DEEP_SLEEP_SECONDS);
-  **/
- cmd.begin(); 
+
+  cmd.begin(); 
 }
 
 void loop() {
   cmd.checkForCommands();
-  /**
-  Serial.print("Weight: ");
-  Serial.println(scale.getWeight(ITERATIONS));
-  Serial.println("------------------------");
-  delay(5000);
-  **/
 }

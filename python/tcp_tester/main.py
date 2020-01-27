@@ -3,22 +3,43 @@ import socket
 from binascii import hexlify
 
 class CmdCode(IntEnum):
-    NOP              =   0,
-    GET_NAME         =   1,
-    SET_NAME         =   2,
-    GET_FLAGS        =   3,
-    GET_SCALE_OFFSET =  10,
-    SET_SCALE_OFFSET =  11,
-    GET_SCALE_FACTOR =  12,
-    SET_SCALE_FACTOR =  13,
+  NOP              =   0,
+  GET_NAME         =   1,
+  SET_NAME         =   2,
+  GET_FLAGS        =   3,
+  RESET_SETTINGS   =   4,
+  SAVE_SETTINGS    =   5,
+  ERASE_SETTINGS   =   6,
 
-    GET_MAC_ADDRESS  =  80,
-    GET_VERSION      =  81,
-    SET_IDLE_TIME    =  82,
-    GET_IDLE_TIME    =  83, 
-    TARE             = 200,
-    CALIBRATE        = 201,
-    GET_WEIGHT       = 202
+  GET_SCALE_OFFSET =  10,
+  SET_SCALE_OFFSET =  11,
+  GET_SCALE_FACTOR =  12,
+  SET_SCALE_FACTOR =  13,
+
+  GET_SSID         =  20,
+  SET_SSID         =  21,
+  CLEAR_SSID       =  22,
+  GET_PASSWORD     =  23,
+  SET_PASSWORD     =  24,
+  CLEAR_PASSWORD   =  25,
+  SET_WIFI_ACTIVE  =  26,
+  GET_WIFI_FLAGS   =  27,
+
+  GET_MQTT_HOST    =  30,
+  SET_MQTT_HOST    =  31,
+  GET_MQTT_PORT    =  32,
+  SET_MQTT_PORT    =  33,
+  SET_MQTT_ACTIVE  =  36,
+  GET_MQTT_FLAGS   =  37,
+
+  GET_MAC_ADDRESS  =  80,
+  GET_VERSION      =  81,
+  SET_IDLE_TIME    =  82,
+  GET_IDLE_TIME    =  83, 
+
+  TARE             = 200,
+  CALIBRATE        = 201,
+  GET_WEIGHT       = 202
 
 class StatusFlag(IntFlag):
 
@@ -43,9 +64,11 @@ class RequestFlag(IntFlag):
     AUTOSAVE_CTX           =    1
 
 class StatusCode(IntEnum):
-    OK = 20,
-    BAD_REQUEST = 40,
-    NOT_FOUND = 44
+  NONE             =  0,
+  OK               =  1,
+  BAD_REQUEST      =  2,
+  NOT_FOUND        =  3,
+  ILLEGAL_STATE    =  4
 
 class Response:
 
@@ -118,12 +141,11 @@ class NeoBeeShell:
 
     def __exit__(self, type, value, traceback):
         print("Closing connection")
-        self._socket.shutdown(1)
+        #self._socket.shutdown(1)
         self._socket.close()
 
     def _clearbuffer(self):
-        for i in range(32):
-            self._buffer[i] = 0
+        self._buffer[:] = [0] * 32
 
     def _receive(self):
         bytes_recd = 0        
@@ -170,6 +192,7 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.GET_SCALE_OFFSET
         self._send()
+
         if self._status == StatusCode.OK:
             return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
         elif self._status == StatusCode.NOT_FOUND:
@@ -216,6 +239,14 @@ class NeoBeeShell:
         for i in range(6):
             mac[i] = self[i]
         return mac
+
+    @property
+    def name(self):
+        return self.get_name()
+
+    @name.setter
+    def name(self, name:str):
+        self.set_name(name)
     
     def get_name(self):
         self._clearbuffer()
@@ -240,16 +271,82 @@ class NeoBeeShell:
 
         self._send()
 
-with NeoBeeShell() as shell:
+    def save_settings(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.SAVE_SETTINGS
+        self._send()
+
+    def erase_settings(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.ERASE_SETTINGS
+        self._send()
+    
+    def reset_settings(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.RESET_SETTINGS
+        self._send()
+
+    def set_ssid(self, ssid:str):
+        print("Setting ssid to ", ssid)
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_SSID
+        for index, char in enumerate(ssid):
+            self[index] = ord(char)
+        self._print_buffer()
+        self._send()
+
+    def get_ssid(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_SSID
+        self._send()
+        if self._status == StatusCode.OK:
+
+            return bytearray(filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])).decode("ascii")
+        else:
+            return None
+
+    def clear_password(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.CLEAR_PASSWORD
+        self._send()
+
+    def set_password(self, password:str):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_PASSWORD
+        for index, char in enumerate(password):
+            self[index] = ord(char)
+        self._send()
+
+    def activate_wifi_sta(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_WIFI_ACTIVE
+        self[0] = 1
+        self._send()
+
+    def deactivate_wifi_sta(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_WIFI_ACTIVE
+        self._send()
+
+
+with NeoBeeShell(host="192.168.178.48") as shell:
+    print("SSID : ", shell.get_ssid())
     print("Version         : ", shell.get_version())
+    
     print("Reading Offset  : ", shell.get_scale_offset())
-    print("Setting Offset to 666.66")
-    shell.set_scale_offset(666.66)
+    print("Setting Offset to 666")
+    shell.set_scale_offset(666)
     print("Reading Offset  : ", shell.get_scale_offset())
     print("Reading Factor  : ", shell.get_scale_factor())
     shell.set_scale_factor(12.33)
     print("Factor          : ", shell.get_scale_factor())
     print("MAC Address     : ", shell.get_mac_address())
+    """
     print("Setting devicename to Klaas")
     shell.set_name('Klaas')
     print("Reading Name    : ", shell.get_name())
+    shell.set_ssid("RepeaterOben24")
+    shell.set_password("4249789363748310")
+    shell.activate_wifi_sta()
+    shell.save_settings()
+    """

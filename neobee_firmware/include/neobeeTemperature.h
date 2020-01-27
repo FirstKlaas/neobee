@@ -2,6 +2,7 @@
 #define neobeeTemperature_h
 
 #include "neobeeTypes.h"
+#include "neobeeContext.h"
 
 class NeoBeeTemperature
 {

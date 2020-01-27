@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "neobee_firmware"
+		},
+		{
+			"path": "python/tcp_tester"
+		}
+	],
+	"settings": {}
+}

@@ -2,6 +2,7 @@
 #define neobeeScale_h
 
 #include "neobeeTypes.h"
+#include "neobeeContext.h"
 
 class NeoBeeScale
 {

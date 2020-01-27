@@ -1,9 +1,10 @@
 #include "neobeeCmd.h"
+#include "neobeeContext.h"
+#include "neobeeUtil.h"
+
 
 const char *ssid = "NeoBee";
 const char *password = "sumsum";
-
-WiFiServer wifiServer(8888);
 
 #define HEADSIZE 2
 
@@ -17,11 +18,7 @@ NeoBeeCmd::NeoBeeCmd(
     m_port(port),
     m_scale(scale),
     m_temperature(temp)
-{
-    m_buffer = (uint8_t*) malloc(BUFFER_SIZE);
-    m_data_space = m_buffer + HEADSIZE;
-    m_data_space_size = BUFFER_SIZE - HEADSIZE;
-};
+{};
 
 NeoBeeCmd::~NeoBeeCmd() {
     free(m_buffer);
@@ -29,21 +26,16 @@ NeoBeeCmd::~NeoBeeCmd() {
 
 void NeoBeeCmd::begin()
 {   
-    WiFi.softAP(ssid);
-    WiFi.setSleepMode(WIFI_NONE_SLEEP);
-
-    IPAddress myIP = WiFi.softAPIP();
-    #ifdef DEBUG
-    Serial.print("AP IP address: ");
-    Serial.println(myIP);
-    #endif 
+    m_buffer = (uint8_t*) malloc(BUFFER_SIZE);
+    m_data_space = m_buffer + HEADSIZE;
+    m_data_space_size = BUFFER_SIZE - HEADSIZE;
     wifiServer = new WiFiServer(m_port);
     wifiServer->begin();
 }
 
 void NeoBeeCmd::sendResponse(WiFiClient& client, bool flush) {
     client.write(m_buffer, BUFFER_SIZE);
-    if (flush) client.flush();
+    client.flush();
     clearBuffer();
 }
 
@@ -88,7 +80,11 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #endif
             clearBuffer(CmdCode::GET_SCALE_OFFSET, StatusCode::OK);
             if (m_ctx.hasOffset()) {
+                #ifdef DEBUG
+                Serial.println("Write offset to data space");
+                #endif
                 writeInt32(int(m_scale.getOffset() * 100.0 + 0.5), m_data_space);
+                printByteArray(m_buffer);
             } else {
                 setStatus(StatusCode::NOT_FOUND);
             }
@@ -266,18 +262,23 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * Saves the settings to EEPROM without any checks,
              * if data is valid.
              **/
-            m_ctx.save();
+            saveContext(&m_ctx);
             break;
 
         case CmdCode::RESET_SETTINGS:
-            m_ctx.reset();
+            resetContext(&m_ctx);
             break;
 
         case CmdCode::ERASE_SETTINGS:
-            m_ctx.erase();
+            eraseContext(&m_ctx);
             break;
 
         case CmdCode::GET_SSID:
+            #ifdef DEBUG
+            Serial.println("GET SSID");
+            Serial.print("Flags : ");
+            Serial.println(m_ctx.wifi_network.flags, BIN);
+            #endif
             clearBuffer(CmdCode::GET_SSID, StatusCode::OK);
             if (m_ctx.wifi_network.hasSSID()) {
                 m_ctx.wifi_network.getSSID(m_data_space);
@@ -305,17 +306,22 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             }
             break;
         
+        case CmdCode::SET_PASSWORD:
+            m_ctx.wifi_network.setPassword(m_data_space);
+            clearBuffer(CmdCode::SET_PASSWORD, StatusCode::OK);
+            break;
+
+        case CmdCode::CLEAR_PASSWORD:
+            clearBuffer(CmdCode::CLEAR_PASSWORD, StatusCode::OK);
+            m_ctx.wifi_network.clearPassword();
+            break;
+
         case CmdCode::SET_WIFI_ACTIVE:
             bitWrite(
                 m_ctx.wifi_network.flags, 
                 int(WifiFlags::FLAG_ACTIVE), 
                 m_data_space[0] & 1); 
             clearBuffer(CmdCode::SET_WIFI_ACTIVE, StatusCode::OK);
-            break;
-
-        case CmdCode::CLEAR_PASSWORD:
-            clearBuffer(CmdCode::CLEAR_PASSWORD, StatusCode::OK);
-            m_ctx.wifi_network.clearPassword();
             break;
 
         default:
@@ -339,6 +345,7 @@ void NeoBeeCmd::checkForCommands() {
     WiFiClient client = wifiServer->available();
 
     if (client) {
+        
         while (client.connected()) {
             uint8_t index = 0;
             clearBuffer();
@@ -349,8 +356,8 @@ void NeoBeeCmd::checkForCommands() {
                     clearBuffer();
                     index = 0;
                 }
+                delay(10);
             }
-            delay(10);
         };
         client.stop();
     }
