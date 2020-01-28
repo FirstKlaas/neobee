@@ -10,7 +10,7 @@ class NeoBeeButton
         ~NeoBeeButton();
 
         bool isPressed();
-
+        
     private:
         const uint8_t m_pin;
 };
@@ -22,6 +22,9 @@ class NeoBeeLED
         ~NeoBeeLED();
 
         void pulse(uint16_t duration_ms = 500, uint8_t count = 1, uint16_t dark_time = 0);
+        void switchOn();
+        void switchOff();
+        void toggle();
 
     private:
         const uint8_t m_pin;
