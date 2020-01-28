@@ -19,7 +19,7 @@
 #define SERIAL_SPEED 9600
 #define MAX_WIFI_CONNECT_TRIES 50
 #define AP_SSID "NeoBee"
-#define STATUS_PIN D2
+#define STATUS_PIN D8
 #define RESET_BTN_PIN D4
 #define CMD_BTN_PIN D5
 
@@ -43,21 +43,6 @@ OperationMode mode = OperationMode::IOT_MODE;
 #define LED_PIN D8
 
 void setup() {
-  NeoBeeLED led = NeoBeeLED(LED_PIN);
-  Serial.begin(SERIAL_SPEED);
-  delay(1000);
-  while(!Serial) {
-    // Wait for serial connection
-  };
-  delay(500);
-  Serial.println("Pulse...");
-  led.pulse(100,10,50); 
-  Serial.println("... done"); 
-  temperature.begin();
-}
-
-
-void isetup() {
   WiFi.disconnect();
   WiFi.setAutoConnect(false);
   WiFi.setAutoReconnect(false);
@@ -78,16 +63,18 @@ void isetup() {
   // If pressed, the mode is set to CMD_MODE
   if (cmdButton.isPressed()) {
     mode = OperationMode::CMD_MODE;  
+    statusLed.pulse(200,5,50);  
   }; 
 
+
+  #ifdef DEBUG
   mode = OperationMode::CMD_MODE;
+  #endif
 
   // Initialize the configuration data
   if (loadContext(&ctx)) {
     #ifdef DEBUG
     Serial.println("Context restored");
-    Serial.print("Wifi Flags: ");
-    Serial.println(ctx.wifi_network.flags);
     #endif
   } else {
     #ifdef DEBUG
@@ -114,6 +101,7 @@ void isetup() {
     Serial.print("Using password: ");
     Serial.println(NBWiFi.password);
     #endif
+    
     // Try to connect to configured network.
     // If the connection fails, we will fallback
     // tp AP (Access Point) mode.
@@ -122,7 +110,9 @@ void isetup() {
       #ifdef DEBUG
       Serial.print(".");
       #endif
-      delay(500);
+      // Led On and Led Off for 250 ms. So we have delay of
+      // 250 ms in total
+      statusLed.pulse(250,1,250);
       number_of_tries++;
     };
     // Print some information for the user.
@@ -134,6 +124,7 @@ void isetup() {
       Serial.println(" tries.");
       Serial.print("NeoBee IP is ");
       Serial.println(WiFi.localIP());
+      statusLed.pulse(1000,3,250);
     }
     #endif
   } else {
@@ -168,6 +159,10 @@ void isetup() {
     #ifdef DEBUG
     Serial.println(success);
     #endif 
+    
+    // switching status LED on permanently, to show,
+    // acess point is active.
+    statusLed.switchOn();
     
     #ifdef DEBUG
     IPAddress myIP = WiFi.softAPIP();

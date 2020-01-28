@@ -23,7 +23,7 @@ void NeoBeeLED::pulse(uint16_t duration_ms, uint8_t count, uint16_t dark_time) {
     for (uint8_t i=0; i<count; i++) {
         switchOn();
         delay(duration_ms);
-        digitalWrite(m_pin, LOW);
+        switchOff();
         if (dark_time > 0) {
             delay(dark_time);
         }
