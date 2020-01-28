@@ -101,7 +101,7 @@ void setup() {
     Serial.print("Using password: ");
     Serial.println(NBWiFi.password);
     #endif
-    
+
     // Try to connect to configured network.
     // If the connection fails, we will fallback
     // tp AP (Access Point) mode.
