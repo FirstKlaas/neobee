@@ -400,7 +400,7 @@ class NeoBeeShell:
             self._cmd = CmdCode.CLEAR_SSID
         else:
             self._cmd = CmdCode.SET_SSID
-            self._string_to_buffer(ssid)
+            self._string_to_buffer(val)
 
         self._send()
 
@@ -495,6 +495,39 @@ class NeoBeeShell:
         self._print_buffer()
         self._send()
 
+
+    def tare(self, nr_times: int):
+        self._clearbuffer()
+        self._cmd = CmdCode.TARE
+        self[0] = (nr_times & 0xFF)
+        print(self[0])
+        self._print_buffer()
+        self._send()
+        self._print_buffer()
+        offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+        factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100
+        return (offset, factor)
+
+    def calibrate(self, ref_weight:int, count:int):
+        self._clearbuffer()
+        self._cmd = CmdCode.CALIBRATE
+        self[0] = (ref_weight >> 8) & 0xFF
+        self[1] = ref_weight & 0xFF
+        self[2] = count & 0xFF
+        self._send()
+        self._print_buffer()
+        offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+        factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100
+        return (offset, factor)
+
+    @property
+    def weight(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_WEIGHT
+        self[0] = 1
+        self._send()
+        return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+
     def to_dict(self):
         _d = {}
         _d["firmware_version"] = "{version[0]}.{version[1]}.{version[2]}".format(version=self.get_version())
@@ -508,10 +541,19 @@ class NeoBeeShell:
         _d["scale_factor"] = self.get_scale_factor()
         return _d
 
-# with NeoBeeShell() as shell:
 
 
-with NeoBeeShell(host="192.168.178.48") as shell:
-    
-    d = shell.to_dict()
-    print(json.dumps(d, ensure_ascii=True, indent=2))
+with NeoBeeShell(host="192.168.178.31") as shell:
+    #with NeoBeeShell() as shell:
+    #shell.name = "NeoBee.One"
+    #shell.ssid = "RepeaterOben24"
+    #shell.set_password("4249789363748310")
+    #shell.deep_sleep_seconds = 30
+    #shell.save_settings()
+    #d = shell.to_dict()
+    #print(shell.tare(1))
+    shell.set_scale_offset(61191.0)
+    shell.set_scale_factor(21.88)
+    print(shell.weight)
+    #print(shell.calibrate(2962,1))
+    #print(json.dumps(d, ensure_ascii=True, indent=2))

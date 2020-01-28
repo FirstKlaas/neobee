@@ -7,12 +7,12 @@ NeoBeeButton::NeoBeeButton(uint8_t pin): m_pin(pin) {
 NeoBeeButton::~NeoBeeButton() {};
 
 bool NeoBeeButton::isPressed() {
+    Serial.println(digitalRead(m_pin));
     return (digitalRead(m_pin) == HIGH );
 };
 
 NeoBeeLED::NeoBeeLED(const uint8_t pin): m_pin(pin) {
     pinMode(m_pin, OUTPUT);
-    Serial.println("LED initialized");
 };
 
 NeoBeeLED::~NeoBeeLED() {
