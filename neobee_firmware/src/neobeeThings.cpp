@@ -15,7 +15,9 @@ NeoBeeLED::NeoBeeLED(const uint8_t pin): m_pin(pin) {
     Serial.println("LED initialized");
 };
 
-NeoBeeLED::~NeoBeeLED() {};
+NeoBeeLED::~NeoBeeLED() {
+    switchOff();
+};
 
 void NeoBeeLED::pulse(uint16_t duration_ms, uint8_t count, uint16_t dark_time) {
     for (uint8_t i=0; i<count; i++) {
