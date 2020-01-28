@@ -39,5 +39,7 @@ void NeoBeeTemperature::begin() {
   // Was ist, wenn der zweite Sensor nicht angeschlossen ist? Dann wäre das Flag nicht
   // gesetzt und man wuerde hier erneut versuchen, die Adressen zu ermitteln.
   bitWrite(m_ctx.flags, FLAG_ADDR_INSIDE_SET, sensors.getAddress(m_ctx.temperature.addr_inside, 0));
-  bitWrite(m_ctx.flags, FLAG_ADDR_OUTSIDE_SET, sensors.getAddress(m_ctx.temperature.addr_inside, 1));
+  bitWrite(m_ctx.flags, FLAG_ADDR_OUTSIDE_SET, sensors.getAddress(m_ctx.temperature.addr_outside, 1));
+  printByteArray(m_ctx.temperature.addr_inside,8);
+  printByteArray(m_ctx.temperature.addr_outside,8);
 }

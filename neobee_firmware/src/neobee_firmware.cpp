@@ -19,7 +19,7 @@
 #define SERIAL_SPEED 9600
 #define MAX_WIFI_CONNECT_TRIES 50
 #define AP_SSID "NeoBee"
-#define STATUS_PIN D3
+#define STATUS_PIN D2
 #define RESET_BTN_PIN D4
 #define CMD_BTN_PIN D5
 
@@ -40,8 +40,24 @@ OperationMode mode = OperationMode::IOT_MODE;
 #define NBWiFi      ctx.wifi_network
 #define MEMSTART    0
 #define EEPROM_SIZE 4096
+#define LED_PIN D8
 
 void setup() {
+  NeoBeeLED led = NeoBeeLED(LED_PIN);
+  Serial.begin(SERIAL_SPEED);
+  delay(1000);
+  while(!Serial) {
+    // Wait for serial connection
+  };
+  delay(500);
+  Serial.println("Pulse...");
+  led.pulse(100,10,50); 
+  Serial.println("... done"); 
+  temperature.begin();
+}
+
+
+void isetup() {
   WiFi.disconnect();
   WiFi.setAutoConnect(false);
   WiFi.setAutoReconnect(false);
