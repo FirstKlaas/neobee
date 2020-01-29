@@ -10,8 +10,6 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <Adafruit_NeoPixel.h>
-
 
 // Global FLAGS
 #define FLAG_OFFSET_SET           0
