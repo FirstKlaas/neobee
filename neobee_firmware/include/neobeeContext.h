@@ -4,8 +4,15 @@
 #include <Arduino.h>
 #include "neobeeTypes.h"
 #include "neobeeWifi.h"
-#include "neobeeMqtt.h"
 
+// Data strucure to store relevant information
+// between two deep sleep cycles
+//
+typedef struct {
+  uint8_t flags;                    // Mqtt Flags
+  char host_name[31];               // 0-terminated hostname or ip of the mqtt server
+  uint16_t port;                    // mqtt port
+} MqttServer;
 
 typedef struct context {
   uint8_t magic_bytes[6];           // Must be NEOBEE for a valid data block
