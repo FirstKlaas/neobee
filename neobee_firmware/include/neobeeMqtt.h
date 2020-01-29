@@ -15,6 +15,9 @@ class NeoBeeMqtt
     void sendMessage();
     void setMqttHost(const uint8_t* host);
 
+    uint8_t operator[](const uint8_t index);
+    size_t bufferSize() const;
+
   private:
     uint8_t* m_buffer;
     Context& m_ctx;
