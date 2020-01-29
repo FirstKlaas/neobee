@@ -501,14 +501,12 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.GET_TEMPERATURE
         self._send()
-        self._print_buffer()
         return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
         
     def tare(self, nr_times: int):
         self._clearbuffer()
         self._cmd = CmdCode.TARE
         self[0] = (nr_times & 0xFF)
-        print(self[0])
         self._print_buffer()
         self._send()
         self._print_buffer()
