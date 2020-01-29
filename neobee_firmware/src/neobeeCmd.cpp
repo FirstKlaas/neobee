@@ -7,7 +7,8 @@ const char *ssid = "NeoBee";
 const char *password = "sumsum";
 
 #define HEADSIZE 2
- 
+#define F100(x)  (int(x * 100.0 + 0.5))
+
 NeoBeeCmd::NeoBeeCmd(
     Context& ctx, 
     NeoBeeScale& scale, 
@@ -365,6 +366,12 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 int(WifiFlags::FLAG_ACTIVE), 
                 m_data_space[0] & 1); 
             clearBuffer(CmdCode::SET_WIFI_ACTIVE, StatusCode::OK);
+            break;
+
+        case CmdCode::GET_TEMPERATURE:
+            m_temperature.begin();
+            clearBuffer(CmdCode::GET_TEMPERATURE, StatusCode::OK);
+            writeInt32(F100(m_temperature.getCTemperatureByIndex()), m_data_space);
             break;
 
         default:

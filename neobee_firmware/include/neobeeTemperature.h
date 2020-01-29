@@ -11,10 +11,12 @@ class NeoBeeTemperature
     virtual ~NeoBeeTemperature();
 
     void begin();
+    float getCTemperatureByIndex(const uint8_t index=0) const;
     bool hasInsideSensorAddress();
 
   private:
     Context& m_ctx;
+    bool m_has_started;
     
 };
 

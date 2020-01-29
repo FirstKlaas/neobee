@@ -543,8 +543,9 @@ class NeoBeeShell:
 
 
 
-with NeoBeeShell(host="192.168.178.31") as shell:
+with NeoBeeShell(host="192.168.178.72") as shell:   
     #with NeoBeeShell() as shell:
+
     #shell.name = "NeoBee.One"
     #shell.ssid = "RepeaterOben24"
     #shell.set_password("4249789363748310")
@@ -552,8 +553,10 @@ with NeoBeeShell(host="192.168.178.31") as shell:
     #shell.save_settings()
     #d = shell.to_dict()
     #print(shell.tare(1))
-    shell.set_scale_offset(61191.0)
-    shell.set_scale_factor(21.88)
+    #shell.set_scale_offset(61191.0)
+    #shell.set_scale_factor(21.88)
     print(shell.weight)
     #print(shell.calibrate(2962,1))
     #print(json.dumps(d, ensure_ascii=True, indent=2))
+    #shell.save_settings()
+    

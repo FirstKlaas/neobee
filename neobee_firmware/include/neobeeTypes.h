@@ -63,6 +63,8 @@ enum class CmdCode : uint8_t {
   SET_MQTT_ACTIVE  =  36,
   GET_MQTT_FLAGS   =  37,
 
+  GET_TEMPERATURE  =  40,
+  
   GET_MAC_ADDRESS  =  80,
   GET_VERSION      =  81,
   SET_IDLE_TIME    =  82,

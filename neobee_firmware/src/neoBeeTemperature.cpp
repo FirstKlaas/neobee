@@ -21,13 +21,17 @@ DallasTemperature sensors(&oneWire);
 DeviceAddress insideThermometer, outsideThermometer;
 
 
-NeoBeeTemperature::NeoBeeTemperature(Context &ctx): m_ctx(ctx) {
+NeoBeeTemperature::NeoBeeTemperature(Context &ctx):
+m_ctx(ctx), m_has_started(false)
+{
 }
 
 NeoBeeTemperature::~NeoBeeTemperature() {
 }
 
 void NeoBeeTemperature::begin() {
+  if (m_has_started) return;
+
   #ifdef DEBUG
     Serial.println("Starting DS18B20");
   #endif
@@ -43,12 +47,19 @@ void NeoBeeTemperature::begin() {
   //sensors.getAddress(m_ctx.temperature.addr_inside, 0);
   //sensors.getAddress(m_ctx.temperature.addr_outside, 1);
   
+  #ifdef DEBUG
   Serial.print("Device count ");
   Serial.println(sensors.getDeviceCount());
-  //oneWire.search(m_ctx.temperature.addr_inside);
-  //oneWire.search(m_ctx.temperature.addr_outside);
-  //oneWire.reset_search();
-  
+  oneWire.search(m_ctx.temperature.addr_inside);
+  oneWire.search(m_ctx.temperature.addr_outside);
+  oneWire.reset_search();
   printByteArray(m_ctx.temperature.addr_inside,8);
   printByteArray(m_ctx.temperature.addr_outside,8);
+  #endif
+  
+}
+
+float NeoBeeTemperature::getCTemperatureByIndex(const uint8_t index) const {
+    sensors.requestTemperatures();
+    return sensors.getTempCByIndex(index);
 }
