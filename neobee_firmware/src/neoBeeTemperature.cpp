@@ -32,7 +32,7 @@ NeoBeeTemperature::~NeoBeeTemperature() {
 void NeoBeeTemperature::begin() {
   if (m_has_started) return;
   m_has_started = true;
-  
+
   #ifdef DEBUG
     Serial.println("Starting DS18B20");
   #endif
@@ -60,7 +60,8 @@ void NeoBeeTemperature::begin() {
   
 }
 
-float NeoBeeTemperature::getCTemperatureByIndex(const uint8_t index) const {
+float NeoBeeTemperature::getCTemperatureByIndex(const uint8_t index) {
+    begin();
     sensors.requestTemperatures();
     return sensors.getTempCByIndex(index);
 }
