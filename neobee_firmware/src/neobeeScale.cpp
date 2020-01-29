@@ -50,6 +50,15 @@ long NeoBeeScale::readMedian() {
   return _values[7];
 }
 
+long NeoBeeScale::readMedAvg() {
+  begin();
+  for (uint8_t i=0; i<15; i++) {
+    _values[i] = _scale.read();
+  };
+  sortArray(_values,15);
+  return (_values[5] + _values[6] + _values[7] + _values[8] + _values[9]) / 5;
+}
+
 double NeoBeeScale::readPrecise(uint8_t ntimes) {
   begin();
   long raw = 0;

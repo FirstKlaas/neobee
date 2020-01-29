@@ -35,6 +35,7 @@ class NeoBeeScale
     long readMedian();
     double readPrecise(uint8_t ntimes = 10); 
     long getRaw(uint8_t ntimes = 20);
+    long readMedAvg();
 };
 
 #endif
