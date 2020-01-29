@@ -31,7 +31,8 @@ NeoBeeTemperature::~NeoBeeTemperature() {
 
 void NeoBeeTemperature::begin() {
   if (m_has_started) return;
-
+  m_has_started = true;
+  
   #ifdef DEBUG
     Serial.println("Starting DS18B20");
   #endif

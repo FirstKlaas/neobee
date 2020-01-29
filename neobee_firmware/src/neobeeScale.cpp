@@ -16,11 +16,11 @@ m_ctx(ctx), _has_started(false)
 NeoBeeScale::~NeoBeeScale() {}
 
 bool NeoBeeScale::begin() {
+
+  if (_has_started) return false;
   #ifdef DEBUG
     Serial.println("Starting scale");
   #endif
-
-  if (_has_started) return false;
 
   _has_started = true;
 

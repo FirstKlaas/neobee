@@ -369,9 +369,19 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             break;
 
         case CmdCode::GET_TEMPERATURE:
+            #ifdef DEBUG
+            Serial.println("GET_TEMPERATURE Request");
+            #endif
             m_temperature.begin();
             clearBuffer(CmdCode::GET_TEMPERATURE, StatusCode::OK);
-            writeInt32(F100(m_temperature.getCTemperatureByIndex()), m_data_space);
+            {
+                float c = m_temperature.getCTemperatureByIndex();
+                #ifdef DEBUG
+                Serial.print("Temperature: ");
+                Serial.println(c);
+                #endif
+                writeInt32(F100(c), m_data_space);
+            }
             break;
 
         default:

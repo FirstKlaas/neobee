@@ -35,6 +35,7 @@ class CmdCode(IntEnum):
     SET_MQTT_ACTIVE = 36
     GET_MQTT_FLAGS = 37
 
+    GET_TEMPERATURE = 40
     GET_MAC_ADDRESS = 80
     GET_VERSION = 81
     SET_IDLE_TIME = 82
@@ -496,6 +497,13 @@ class NeoBeeShell:
         self._send()
 
 
+    def get_temperature(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_TEMPERATURE
+        self._send()
+        self._print_buffer()
+        return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+        
     def tare(self, nr_times: int):
         self._clearbuffer()
         self._cmd = CmdCode.TARE
@@ -556,6 +564,7 @@ with NeoBeeShell(host="192.168.178.72") as shell:
     #shell.set_scale_offset(61191.0)
     #shell.set_scale_factor(21.88)
     print(shell.weight)
+    print(shell.get_temperature())
     #print(shell.calibrate(2962,1))
     #print(json.dumps(d, ensure_ascii=True, indent=2))
     #shell.save_settings()
