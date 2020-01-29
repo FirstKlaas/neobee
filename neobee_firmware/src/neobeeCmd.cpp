@@ -91,7 +91,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("SET_SCALE_OFFSET Request");
             #endif
-            m_scale.setOffset(readInt32(m_data_space) / 100.f);
+            printByteArray(m_data_space);
+            m_scale.setOffset((double) (readInt32(m_data_space) / 100.f));
             clearBuffer(CmdCode::SET_SCALE_OFFSET, StatusCode::OK);
             #ifdef DEBUG 
             Serial.print("New offset is:");
@@ -159,10 +160,16 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("TARE Request");
             #endif
-            clearBuffer(CmdCode::TARE, StatusCode::OK);
-            m_scale.begin();
-            m_scale.tare(m_data_space[0]);
-            writeInt32(int(m_scale.getOffset() * 100 + 0.5), m_data_space);
+            if (m_data_space[0] == 0) {
+                clearBuffer(CmdCode::TARE, StatusCode::BAD_REQUEST);
+            } else {
+                m_scale.begin();
+                m_scale.tare(m_data_space[0]);
+                
+                clearBuffer(CmdCode::TARE, StatusCode::OK);
+                writeInt32(int(m_scale.getOffset() * 100 + 0.5), m_data_space);
+                writeInt32(int(m_scale.getFactor() * 100 + 0.5), m_data_space+4);
+            };            
             break;
 
         case CmdCode::CALIBRATE:
@@ -180,14 +187,16 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("CALIBRATE Request");
             #endif
-            clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
-            m_scale.begin();
             
-            ref_weight = ((m_data_space[0] << 8) + m_data_space[1]);
-            m_scale.calibrate(ref_weight, m_data_space[2]);
-        
-            writeInt32(int(m_ctx.scale.offset * 100 + 0.5), m_data_space);
-            writeInt32(int(m_ctx.scale.factor * 100 + 0.5), m_data_space + 4);
+            if (m_data_space[2] == 0 || ref_weight == 0) {
+                clearBuffer(CmdCode::CALIBRATE, StatusCode::BAD_REQUEST);    
+            } else {
+                clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
+                m_scale.begin();
+                m_scale.calibrate(ref_weight, m_data_space[2]);
+                writeInt32(int(m_ctx.scale.offset * 100 + 0.5), m_data_space);
+                writeInt32(int(m_ctx.scale.factor * 100 + 0.5), m_data_space + 4);
+            };
             break;
 
         case CmdCode::GET_VERSION:
@@ -245,12 +254,13 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 0 : HIGH byte of the idle time
              * 1 : LOW byte of the idle time
              **/
-            clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
+            #ifdef DEBUG
             Serial.print("Get Idle Time - ");
             Serial.println(m_ctx.getDeepSleepSeconds());
+            #endif
+            clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
             m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
             m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
-            printByteArray(m_data_space, 32);
             break;
 
         case CmdCode::SET_DEEP_SLEEP:
@@ -280,10 +290,14 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             uint8_t ntimes;
             float weight;
 
-            clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
             ntimes = m_data_space[0];
-            weight = m_scale.getWeight(ntimes);
-            writeInt32(weight, m_data_space);
+            if (ntimes == 0) {
+                clearBuffer(CmdCode::GET_WEIGHT, StatusCode::BAD_REQUEST);
+            } else {
+                clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
+                weight = m_scale.getWeight(ntimes);
+                writeInt32(int(weight * 100.0 + 0.5), m_data_space);            
+            };
             break;
 
         case CmdCode::SAVE_SETTINGS:

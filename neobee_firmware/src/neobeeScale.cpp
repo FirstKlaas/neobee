@@ -22,6 +22,8 @@ bool NeoBeeScale::begin() {
 
   if (_has_started) return false;
 
+  _has_started = true;
+
   _scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);  
   delay(200);
   _scale.set_offset(m_ctx.scale.offset);
@@ -30,14 +32,17 @@ bool NeoBeeScale::begin() {
 }
 
 float NeoBeeScale::getWeight(uint8_t ntimes) {
-  return _scale.get_units(ntimes);
+  begin();
+  return std::max(_scale.get_units(ntimes), 0.f);
 }
 
 long NeoBeeScale::getRaw(uint8_t ntimes) {
+  begin();
   return _scale.read_average(ntimes);   
 }
 
 long NeoBeeScale::readMedian() {
+  begin();
   for (uint8_t i=0; i<15; i++) {
     _values[i] = _scale.read();
   };
@@ -46,6 +51,7 @@ long NeoBeeScale::readMedian() {
 }
 
 double NeoBeeScale::readPrecise(uint8_t ntimes) {
+  begin();
   long raw = 0;
   for (uint8_t i=0; i<ntimes; i++) {
       raw += readMedian();
@@ -53,11 +59,14 @@ double NeoBeeScale::readPrecise(uint8_t ntimes) {
   return raw / ntimes;
 }
 
-void NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
+bool NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
+  if (ntimes == 0) return false;
   _scale.set_scale(1.f);
-  double raw = readPrecise(ntimes);
+  double raw = ntimes > 1 ? readPrecise(ntimes) : _scale.read();
   setFactor((raw - m_ctx.scale.offset) / reference_weight);
   _scale.set_scale(getFactor());
+  return true;
+  
 }
 
 void NeoBeeScale::tare(uint8_t ntimes) {

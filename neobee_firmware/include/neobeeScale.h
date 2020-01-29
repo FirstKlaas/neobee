@@ -12,7 +12,7 @@ class NeoBeeScale
     virtual ~NeoBeeScale();
 
     bool begin();
-    void calibrate(uint16_t reference_weight, uint8_t ntimes = 10);
+    bool calibrate(uint16_t reference_weight, uint8_t ntimes = 10);
     float getWeight(uint8_t ntimes = 20);
 
     double getOffset();

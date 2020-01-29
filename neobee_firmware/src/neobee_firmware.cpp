@@ -20,7 +20,7 @@
 #define MAX_WIFI_CONNECT_TRIES 50
 #define AP_SSID "NeoBee"
 #define STATUS_PIN D8
-#define RESET_BTN_PIN D4
+#define RESET_BTN_PIN D0
 #define CMD_BTN_PIN D5
 
 Context ctx;
@@ -30,7 +30,7 @@ NeoBeeScale scale(ctx);
 NeoBeeCmd cmd(ctx, scale, temperature);
 NeoBeeLED statusLed = NeoBeeLED(STATUS_PIN);
 NeoBeeButton resetButton = NeoBeeButton(RESET_BTN_PIN);
-NeoBeeButton cmdButton = NeoBeeButton(RESET_BTN_PIN);
+NeoBeeButton cmdButton = NeoBeeButton(CMD_BTN_PIN);
 
 // The operation mode for the board. We start with
 // the assumption, that we can read sensor data and 
@@ -40,7 +40,7 @@ OperationMode mode = OperationMode::IOT_MODE;
 #define NBWiFi      ctx.wifi_network
 #define MEMSTART    0
 #define EEPROM_SIZE 4096
-#define LED_PIN D8
+#define LED_PIN     D8
 
 void setup() {
   WiFi.disconnect();
@@ -59,11 +59,16 @@ void setup() {
     Serial.println("#############################################");
   #endif
 
+  temperature.begin();
+  
   // Check, if the command mode button is pressed.
   // If pressed, the mode is set to CMD_MODE
   if (cmdButton.isPressed()) {
+    Serial.println("Wohoooooooooooooooooooo");
     mode = OperationMode::CMD_MODE;  
     statusLed.pulse(200,5,50);  
+  } else {
+    Serial.println("So saaaaad");
   }; 
 
 
