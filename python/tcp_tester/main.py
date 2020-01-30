@@ -143,17 +143,25 @@ class MacAddress:
         return ':'.join("{:02x}".format(x) for x in self._addr)
 
 
-class NotConnectedError(Exception):
+class NeoBeeError(Exception):
+    pass
+
+class NotConnectedError(NeoBeeError):
     pass
 
 
-class AlreadyConnectedError(Exception):
+class AlreadyConnectedError(NeoBeeError):
     pass
 
 
-class BadRequestError(Exception):
+class BadRequestError(NeoBeeError):
     pass
 
+class WrongResponseCommandError(NeoBeeError):
+    pass
+
+class NetworkError(NeoBeeError):
+    pass
 
 class NeoBeeShell:
 
@@ -205,7 +213,6 @@ class NeoBeeShell:
     def _receive(self):
         if not self.connected:
             raise NotConnectedError()
-
         bytes_recd = 0
         while bytes_recd < 32:
             chunk = self._socket.recv(min(32 - bytes_recd, 32))
@@ -219,8 +226,18 @@ class NeoBeeShell:
         if not self.connected:
             raise NotConnectedError()
 
-        self._socket.send(self._buffer)
-        self._receive()
+        request_cmd = self._cmd
+        try:
+            self._socket.send(self._buffer)
+            self._receive()
+        except:
+            raise NetworkError()
+
+        if request_cmd != self._cmd:
+            raise WrongResponseCommandError()
+
+        if self._status == StatusCode.BAD_REQUEST:
+            raise BadRequestError()            
 
     def _print_buffer(self):
         print(':'.join("{:02x}".format(x) for x in self._buffer))
@@ -545,9 +562,8 @@ class NeoBeeShell:
         _d["deep_sleep_seconds"] = self.deep_sleep_seconds
         _d['scale_offset'] = self.get_scale_offset()
         _d["scale_factor"] = self.get_scale_factor()
+        
         return _d
-
-
 
 with NeoBeeShell(host="192.168.178.72") as shell:   
     #with NeoBeeShell() as shell:
