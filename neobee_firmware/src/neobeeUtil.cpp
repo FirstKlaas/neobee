@@ -58,3 +58,22 @@ void eraseContext(Context* ctx) {
     ctx->flags = 0;
     saveContext(ctx);  
 }
+
+String& copyFromByteAray(String& dest, const uint8_t* src, const uint8_t size) {
+  for (uint8_t i=0; i< size; i++) {
+    if (src[i] == 0) break;
+    dest += src[i];
+  };
+  return dest;
+}
+
+String toHex8String(uint8_t *data, uint8_t size)
+{
+    // Create a buffer for storing the hex characters plus one 
+    char tmp[(size << 1) + 1];
+    for (byte i=0; i<size; i++) {
+            sprintf(tmp+(i<<1), "%.2X",data[i]);
+    }
+    tmp[size<<1] = '\0';
+    return String(tmp);
+}
