@@ -10,8 +10,10 @@
 //
 typedef struct {
   uint8_t flags;                    // Mqtt Flags
-  char host_name[31];               // 0-terminated hostname or ip of the mqtt server
+  char host_name[30];               // hostname or ip of the mqtt server
   uint16_t port;                    // mqtt port
+  char login[30];                   // login (optional)
+  char password[30];                // password (optional)
 } MqttServer;
 
 typedef struct context {
