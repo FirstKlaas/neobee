@@ -59,10 +59,11 @@ void eraseContext(Context* ctx) {
     saveContext(ctx);  
 }
 
-String& copyFromByteAray(String& dest, const uint8_t* src, const uint8_t size) {
+String stringFromByteAray(const uint8_t* src, const uint8_t size) {
+  String dest = String();
   for (uint8_t i=0; i< size; i++) {
     if (src[i] == 0) break;
-    dest += src[i];
+    dest += char(src[i]);
   };
   return dest;
 }

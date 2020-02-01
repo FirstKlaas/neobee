@@ -14,6 +14,7 @@
 #include "neobee.h"
 #include "neobeeUtil.h"
 #include "neobeeThings.h"
+#include "neobeeMqtt.h"
 
 #define ITERATIONS 10
 #define SERIAL_SPEED 9600
@@ -25,6 +26,7 @@
 
 Context ctx;
 
+NeoBeeMqtt mqtt = NeoBeeMqtt(ctx);
 NeoBeeTemperature temperature(ctx);
 NeoBeeScale scale(ctx);
 NeoBeeCmd cmd(ctx, scale, temperature);
@@ -57,6 +59,8 @@ void setup() {
     Serial.println("#############################################");
     Serial.println("# NeoBee - Hive Data Logger                 #");
     Serial.println("#############################################");
+    Serial.print("MAC Address: ");
+    Serial.println(WiFi.macAddress());
   #endif
 
   temperature.begin();
@@ -64,22 +68,24 @@ void setup() {
   // Check, if the command mode button is pressed.
   // If pressed, the mode is set to CMD_MODE
   if (cmdButton.isPressed()) {
-    Serial.println("Wohoooooooooooooooooooo");
+    Serial.println("CMD Button pressed during boot.");
     mode = OperationMode::CMD_MODE;  
     statusLed.pulse(200,5,50);  
   } else {
-    Serial.println("So saaaaad");
+    Serial.println("CMD Button not pressed");
   }; 
 
-
   #ifdef DEBUG
-  mode = OperationMode::CMD_MODE;
+  mode = OperationMode::IOT_MODE;
   #endif
 
   // Initialize the configuration data
   if (loadContext(&ctx)) {
     #ifdef DEBUG
     Serial.println("Context restored");
+    Serial.println(stringFromByteAray((uint8_t*)ctx.wifi_network.ssid, 30));
+    Serial.println(stringFromByteAray((uint8_t*)ctx.wifi_network.password, 30));
+    
     #endif
   } else {
     #ifdef DEBUG
@@ -143,6 +149,16 @@ void setup() {
     WiFi.disconnect();
   };
 
+  /**
+   * Mqtt Test
+   **/
+  {
+    uint8_t host[15] = "192.168.178.77";
+    mqtt.setHost(host);
+    mqtt.setPort(1883);
+    mqtt.connect();
+  }    
+
   // Connecting to the network maybe failed.
   // or no network settings have been provided.
   // Starting as an accesspoint.
@@ -200,6 +216,7 @@ void loop() {
     #ifdef DEBUG
     Serial.println("Measure and delay");
     #endif
-    delay(10000);
+    delay(5000);
+    mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
   }
 }

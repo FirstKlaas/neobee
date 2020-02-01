@@ -28,7 +28,7 @@ class NeoBeeMqtt
      * It just copies the bytes from the configuration
      * context to the destination.
      **/  
-    bool printHost(uint8_t* dest);
+    void printHost(uint8_t* dest);
     
     void setPort(uint16_t port);
 
@@ -38,7 +38,7 @@ class NeoBeeMqtt
 
     void publishDeviceUp();
 
-    bool connect(uint8_t number_of_tries = 10);
+    bool connect(uint8_t number_of_tries = 20);
 
 
   private:

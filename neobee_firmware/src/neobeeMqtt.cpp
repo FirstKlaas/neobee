@@ -1,4 +1,6 @@
 #include "neobeeMqtt.h"
+#include "neobeeUtil.h"
+
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
@@ -16,7 +18,7 @@ m_buffer(nullptr), m_ctx(ctx)
     memset(m_ctx.mqttServer.password,0,30);
     m_ctx.mqttServer.port = 0;
     m_ctx.mqttServer.flags = 0;
-    client.setCallback(this->callback);
+    client.setCallback([this] (char* topic, byte* payload, unsigned int length) { this->callback(topic, payload, length); }); 
 };
 
 NeoBeeMqtt::~NeoBeeMqtt() {
@@ -27,7 +29,7 @@ void NeoBeeMqtt::setHost(const uint8_t* host) {
     memcpy(m_ctx.mqttServer.host_name, host, 30);
 };
 
-bool NeoBeeMqtt::printHost(uint8_t* dest) {
+void NeoBeeMqtt::printHost(uint8_t* dest) {
     memcpy(dest, m_ctx.mqttServer.host_name, 30);
 };
 
@@ -39,11 +41,17 @@ uint16_t NeoBeeMqtt::getPort() {
     return m_ctx.mqttServer.port;
 }; 
 
+void NeoBeeMqtt::callback(char* topic, byte* payload, unsigned int length) {
+
+};
+
 bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
-    if (client.connected) return;
+    if (client.connected()) return true;
 
     uint8_t i = 0;
-    String clientId = "NeoBeeHive-";
+
+    String clientId = stringFromByteAray(m_ctx.name, sizeof(m_ctx.name));
+    clientId += "-";
     clientId += WiFi.macAddress();
 
     #ifdef DEBUG
@@ -52,18 +60,34 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     Serial.println(clientId);
     #endif
 
+    client.setServer("192.168.178.77", 1883);
+
     while (!client.connected() && i < number_of_tries) {
         i++;
+        #ifdef DEBUG
         Serial.print(".");
+        #endif
+        client.connect(clientId.c_str());
     };
 
     #ifdef DEBUG
+    Serial.println();
+
     if (client.connected()) {
-        Serial.println("Could not connect to mqtt server");
+        Serial.println("Connected successfully to mqtt server");
+        client.publish("/neobee/hive/connect", clientId.c_str());
     } else {
-        Serial.println("Connected successfully");
+        Serial.println("Could not connect to mqtt server");
     };
     #endif
+
+    /**
+     * Publish a boot up message
+     */
+    if (client.connected()) {
+        Serial.println("Publishing huhu");
+        client.publish("/neobee/hive/rawdata", "Huhu");
+    };
 
     return client.connected();
 }
@@ -89,4 +113,17 @@ size_t NeoBeeMqtt::bufferSize() const {
     return buffer_size;
 };
 
+void NeoBeeMqtt::publishData(float weight, float tempInside, float tempOutside) {
+    uint8_t* bufferPtr(getBuffer());
 
+    WiFi.macAddress(bufferPtr);
+    bufferPtr += 6;
+    writeInt32(int(weight * 100.f + 0.5f), bufferPtr);
+    bufferPtr += 4;
+    writeInt32(int(tempInside * 100.f + 0.5f), bufferPtr);
+    bufferPtr += 4;
+    writeInt32(int(tempOutside * 100.f + 0.5f), bufferPtr);
+    bufferPtr += 4;
+    client.publish("/neobee/hive/rawdata", getBuffer(), 18);
+    memset(getBuffer(),0,18);
+}

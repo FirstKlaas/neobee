@@ -565,18 +565,19 @@ class NeoBeeShell:
         
         return _d
 
-with NeoBeeShell(host="192.168.178.72") as shell:   
-    #with NeoBeeShell() as shell:
+#with NeoBeeShell(host="192.168.178.72") as shell:   
+with NeoBeeShell() as shell:
 
-    #shell.name = "NeoBee.One"
-    #shell.ssid = "RepeaterOben24"
-    #shell.set_password("4249789363748310")
-    #shell.deep_sleep_seconds = 30
-    #shell.save_settings()
+    shell.name = "NeoBee.One"
+    shell.ssid = "RepeaterOben24"
+    shell.set_password("4249789363748310")
+    shell.deep_sleep_seconds = 30
+    shell.set_scale_offset(61191.0)
+    shell.set_scale_factor(21.88)
+    shell.activate_wifi_sta()
+    shell.save_settings()
     #d = shell.to_dict()
     #print(shell.tare(1))
-    #shell.set_scale_offset(61191.0)
-    #shell.set_scale_factor(21.88)
     print(shell.weight)
     print(shell.get_temperature())
     #print(shell.calibrate(2962,1))
