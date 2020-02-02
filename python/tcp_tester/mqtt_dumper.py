@@ -2,31 +2,35 @@ from ipaddress import IPv4Address
 
 import paho.mqtt.client as mqtt
 
-def hello():
-    print("Hello")
-
-def _print_buffer(buffer):
-    print(":".join("{:02x}".format(x) for x in buffer))
-
-def uint32_to_float(data):
-    return ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]) / 100
+from neobee.util import uint32_to_float
+from neobee.net import MacAddress, IPAddress
 
 def handle_connect(data):
-    mac = data[0:6]
-    ip = data[6:10]
-    ipaddr = IPv4Address(ip[0] << 24 | ip[1] << 16 | ip[2] << 8 | ip[3])
-    print(ipaddr)
-    mac_addr = ":".join([format(x, "02X") for x in mac])
-    print(mac_addr)
+    mac_addr = MacAddress(data[0:6])
+    ip_addr = IPAddress(data[6:10])
+
     offset = uint32_to_float(data[10:14])
     factor = uint32_to_float(data[14:18])
+    
+    print()
+    print("NeoBee device connected")
+    print(f" => MAC            = {mac_addr}")
+    print(f" => IP             = {ip_addr}")
+    print(f" => Offset         = {offset}")
+    print(f" => Factor         = {factor}")
 
 def handle_rawdata(data):
-    mac = data[0:6]
+    mac_addr = MacAddress(data[0:6])
     weight = uint32_to_float(data[6:10])
     temp_inside = uint32_to_float(data[10:14])
     temp_outside = uint32_to_float(data[14:18])
-    print(f"Received sensor data: Weight={weight}, Temp (inside)={temp_inside}, Temp (outside) = {temp_outside}")
+
+    print()
+    print("Received sensor data")
+    print(f" => MAC            = {mac_addr}")
+    print(f" => Weight         = {weight}")
+    print(f" => Temp (inside)  = {temp_inside}")
+    print(f" => Temp (outside) = {temp_outside}")
 
 commands = {
     "connect" : handle_connect,
@@ -34,13 +38,10 @@ commands = {
 }
 
 def on_message(client: mqtt.Client, userdata, message):
-    print("------")
     command = message.topic.split("/")[-1:][0]
     f = commands.get(command, None)
     if f is not None:
         f(message.payload)
-
-    print("Command", command)
 
 client = mqtt.Client("dumper")
 client.on_message = on_message
