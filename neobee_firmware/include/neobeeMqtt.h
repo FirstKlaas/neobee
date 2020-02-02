@@ -4,22 +4,12 @@
 #include <Arduino.h>
 #include "neobeeContext.h"
 
-enum class MqttFlags : uint8_t {
-  FLAG_SSID_SET     = 0,
-  FLAG_PASSWORD_SET = 1,
-  FLAG_AUTH         = 2,
-  FLAG_HOST_SET     = 3,
-  FLAG_PORT_SET     = 4
-};
-
 class NeoBeeMqtt
 {
 
   public:
     NeoBeeMqtt(Context& ctx);
     ~NeoBeeMqtt();
-
-    void sendMessage();
 
     void setHost(const uint8_t* host);
 
@@ -36,9 +26,9 @@ class NeoBeeMqtt
 
     void publishData(float weight = 0.f, float tempInside = 0.f, float tempOutside = 0.f);
 
-    void publishDeviceUp();
-
     bool connect(uint8_t number_of_tries = 20);
+
+    bool isConnected();
 
 
   private:

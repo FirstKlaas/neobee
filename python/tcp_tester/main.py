@@ -13,6 +13,7 @@ class CmdCode(IntEnum):
     RESET_SETTINGS = 4
     SAVE_SETTINGS = 5
     ERASE_SETTINGS = 6
+    RESET_ESP = 7
 
     GET_SCALE_OFFSET = 10
     SET_SCALE_OFFSET = 11
@@ -32,8 +33,12 @@ class CmdCode(IntEnum):
     SET_MQTT_HOST = 31
     GET_MQTT_PORT = 32
     SET_MQTT_PORT = 33
-    SET_MQTT_ACTIVE = 36
-    GET_MQTT_FLAGS = 37
+    GET_MQTT_LOGIN = 34
+    SET_MQTT_LOGIN = 35
+    GET_MQTT_PASSWORD = 36,
+    SET_MQTT_PASSWORD = 37,
+    SET_MQTT_ACTIVE = 38
+    GET_MQTT_FLAGS = 39
 
     GET_TEMPERATURE = 40
     GET_MAC_ADDRESS = 80
@@ -74,42 +79,19 @@ class RequestFlag(IntFlag):
     These are the possible flags, which can
     be mixed to fit to your need.
     """
+
     AUTOSAVE_CTX = 1
 
 
 class StatusCode(IntEnum):
-    NONE = 0,
-    OK = 1,
-    BAD_REQUEST = 2,
-    NOT_FOUND = 3,
+    NONE = (0,)
+    OK = (1,)
+    BAD_REQUEST = (2,)
+    NOT_FOUND = (3,)
     ILLEGAL_STATE = 4
 
 
-class Response:
-
-    def __init__(self, cmd: CmdCode, status: StatusCode, data):
-        self.cmd: CmdCode = cmd
-        self.status: StatusCode = status
-        self.data = data
-
-        print("Command: ", self.cmd)
-        print("Status: ", self.status)
-        print("Data: ", ':'.join("{:02x}".format(x) for x in self.data))
-
-
-class Request:
-    def __init__(self, cmd: CmdCode):
-        self._buffer = bytearray(MSGLEN)
-
-    @property
-    def cmd(self) -> CmdCode:
-        return self._buffer[0]
-
-    @cmd.setter
-    def cmd(self, cmd: CmdCode):
-        self._buffer[0] = cmd
-
-
+"""
 def myreceive(sckt, handler=None, max_tries=10, delay=10):
     bytes_recd = 0
     buffer = bytearray(MSGLEN)
@@ -117,19 +99,18 @@ def myreceive(sckt, handler=None, max_tries=10, delay=10):
 
     while bytes_recd < MSGLEN:
         chunk = sckt.recv(min(MSGLEN - bytes_recd, 32))
-        if chunk == b'':
+        if chunk == b"":
             raise RuntimeError("socket connection broken")
         chunksize = len(chunk)
-        buffer[bytes_recd:bytes_recd+chunksize] = chunk
+        buffer[bytes_recd : bytes_recd + chunksize] = chunk
         bytes_recd = bytes_recd + len(chunk)
 
     response = Response(buffer[0], buffer[1], buffer[2:])
     if handler is not None:
         handler(response)
-
+"""
 
 class MacAddress:
-
     def __init__(self):
         self._addr = bytearray(6)
 
@@ -140,11 +121,12 @@ class MacAddress:
         self._addr[index] = val
 
     def __str__(self):
-        return ':'.join("{:02x}".format(x) for x in self._addr)
+        return ":".join("{:02x}".format(x) for x in self._addr)
 
 
 class NeoBeeError(Exception):
     pass
+
 
 class NotConnectedError(NeoBeeError):
     pass
@@ -157,14 +139,28 @@ class AlreadyConnectedError(NeoBeeError):
 class BadRequestError(NeoBeeError):
     pass
 
+
 class WrongResponseCommandError(NeoBeeError):
     pass
+
 
 class NetworkError(NeoBeeError):
     pass
 
-class NeoBeeShell:
 
+def HighByte(val: int):
+    return (val >> 8) & 0xFF
+
+def LowByte(val: int):
+    return val & 0xFF
+
+def HighWord(val: int):
+    return (val >> 16) & 0xFFFF
+
+def LowWord(val: int):
+    return val & 0xFFFF
+
+class NeoBeeShell:
     def __init__(self, host="192.168.4.1", port=8888):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host
@@ -201,7 +197,9 @@ class NeoBeeShell:
         self._buffer[:] = [0] * 32
 
     def _buffer_to_string(self):
-        return bytearray(filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])).decode("ascii")
+        return bytearray(
+            filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])
+        ).decode("ascii")
 
     def _string_to_buffer(self, val: str):
         if not val:
@@ -216,10 +214,10 @@ class NeoBeeShell:
         bytes_recd = 0
         while bytes_recd < 32:
             chunk = self._socket.recv(min(32 - bytes_recd, 32))
-            if chunk == b'':
+            if chunk == b"":
                 raise RuntimeError("socket connection broken")
             chunksize = len(chunk)
-            self._buffer[bytes_recd:bytes_recd+chunksize] = chunk
+            self._buffer[bytes_recd : bytes_recd + chunksize] = chunk
             bytes_recd = bytes_recd + len(chunk)
 
     def _send(self):
@@ -237,16 +235,16 @@ class NeoBeeShell:
             raise WrongResponseCommandError()
 
         if self._status == StatusCode.BAD_REQUEST:
-            raise BadRequestError()            
+            raise BadRequestError()
 
     def _print_buffer(self):
-        print(':'.join("{:02x}".format(x) for x in self._buffer))
+        print(":".join("{:02x}".format(x) for x in self._buffer))
 
     def __getitem__(self, index):
-        return self._buffer[index+2]
+        return self._buffer[index + 2]
 
     def __setitem__(self, index, value):
-        self._buffer[index+2] = (value & 0xff)
+        self._buffer[index + 2] = value & 0xFF
 
     def get_version(self):
         if not self.connected:
@@ -290,11 +288,11 @@ class NeoBeeShell:
 
         self._clearbuffer()
         self._cmd = CmdCode.SET_SCALE_OFFSET
-        iValue = int(value*100)
-        self[0] = (iValue >> 24) & 0xff
-        self[1] = (iValue >> 16) & 0xff
-        self[2] = (iValue >> 8) & 0xff
-        self[3] = (iValue) & 0xff
+        iValue = int(value * 100)
+        self[0] = (iValue >> 24) & 0xFF
+        self[1] = (iValue >> 16) & 0xFF
+        self[2] = (iValue >> 8) & 0xFF
+        self[3] = (iValue) & 0xFF
         self._send()
 
     def get_scale_factor(self):
@@ -317,11 +315,11 @@ class NeoBeeShell:
 
         self._clearbuffer()
         self._cmd = CmdCode.SET_SCALE_FACTOR
-        iValue = int(value*100)
-        self[0] = (iValue >> 24) & 0xff
-        self[1] = (iValue >> 16) & 0xff
-        self[2] = (iValue >> 8) & 0xff
-        self[3] = (iValue) & 0xff
+        iValue = int(value * 100)
+        self[0] = (iValue >> 24) & 0xFF
+        self[1] = (iValue >> 16) & 0xFF
+        self[2] = (iValue >> 8) & 0xFF
+        self[3] = (iValue) & 0xFF
         self._send()
 
     def get_mac_address(self):
@@ -352,7 +350,9 @@ class NeoBeeShell:
         self._cmd = CmdCode.GET_NAME
         self._send()
         if self._status == StatusCode.OK:
-            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode("ascii")
+            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode(
+                "ascii"
+            )
         else:
             return None
 
@@ -440,7 +440,21 @@ class NeoBeeShell:
         self._cmd = CmdCode.CLEAR_PASSWORD
         self._send()
 
-    def set_password(self, password: str):
+    @property
+    def wifi_password(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_PASSWORD
+        self._send()
+        if self._status == StatusCode.NOT_FOUND:
+            return None
+
+        if self._status == StatusCode.OK:
+            return self._buffer_to_string()
+
+        raise BadRequestError()
+
+    @wifi_password.setter
+    def wifi_password(self, password: str):
         if not self.connected:
             raise NotConnectedError()
 
@@ -451,22 +465,6 @@ class NeoBeeShell:
             self._cmd = CmdCode.SET_PASSWORD
             self._string_to_buffer(password)
             self._send()
-
-    def get_password(self):
-        if not self.connected:
-            raise NotConnectedError()
-
-        self._clearbuffer()
-        self._cmd = CmdCode.GET_PASSWORD
-        self._send()
-        if self._status == StatusCode.NOT_FOUND:
-            return None
-
-        if self._status == StatusCode.OK:
-            return self._buffer_to_string()
-
-        self._print_buffer()
-        raise BadRequestError()
 
     def activate_wifi_sta(self):
         if not self.connected:
@@ -479,7 +477,7 @@ class NeoBeeShell:
 
     @property
     def wifi_sta_active(self):
-        return ((self.wifi_flags & WiFiFlag.FLAG_ACTIVE) == WiFiFlag.FLAG_ACTIVE)
+        return (self.wifi_flags & WiFiFlag.FLAG_ACTIVE) == WiFiFlag.FLAG_ACTIVE
 
     def deactivate_wifi_sta(self):
         if not self.connected:
@@ -498,7 +496,7 @@ class NeoBeeShell:
         self._cmd = CmdCode.GET_IDLE_TIME
         self._send()
         self._print_buffer()
-        return ((self[0] << 8) | self[1])
+        return (self[0] << 8) | self[1]
 
     @deep_sleep_seconds.setter
     def deep_sleep_seconds(self, val: int):
@@ -513,17 +511,17 @@ class NeoBeeShell:
         self._print_buffer()
         self._send()
 
-
-    def get_temperature(self):
+    @property
+    def temperature(self):
         self._clearbuffer()
         self._cmd = CmdCode.GET_TEMPERATURE
         self._send()
         return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
-        
+
     def tare(self, nr_times: int):
         self._clearbuffer()
         self._cmd = CmdCode.TARE
-        self[0] = (nr_times & 0xFF)
+        self[0] = nr_times & 0xFF
         self._print_buffer()
         self._send()
         self._print_buffer()
@@ -531,7 +529,7 @@ class NeoBeeShell:
         factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100
         return (offset, factor)
 
-    def calibrate(self, ref_weight:int, count:int):
+    def calibrate(self, ref_weight: int, count: int):
         self._clearbuffer()
         self._cmd = CmdCode.CALIBRATE
         self[0] = (ref_weight >> 8) & 0xFF
@@ -544,6 +542,92 @@ class NeoBeeShell:
         return (offset, factor)
 
     @property
+    def mqtt_host(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_MQTT_HOST
+        self._send()
+        if self._status == StatusCode.NOT_FOUND:
+            return None
+
+        if self._status == StatusCode.OK:
+            return self._buffer_to_string()
+
+        raise BadRequestError()
+
+    @mqtt_host.setter
+    def mqtt_host(self, val):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_MQTT_HOST
+        if val is not None:
+            self._string_to_buffer(val)
+        self._send()
+
+    @property
+    def mqtt_port(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_MQTT_PORT
+        self._send()
+        if self._status == StatusCode.NOT_FOUND:
+            return None
+
+        if self._status == StatusCode.OK:
+            return (self[0] << 8) | self[1]
+
+        raise BadRequestError()
+
+    @mqtt_port.setter
+    def mqtt_port(self, port:int):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_MQTT_PORT
+        self[0] = HighByte(port)
+        self[1] = LowByte(port)
+        self._print_buffer()
+        self._send()
+
+
+    @property
+    def mqtt_login(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_MQTT_LOGIN
+        self._send()
+        if self._status == StatusCode.NOT_FOUND:
+            return None
+
+        if self._status == StatusCode.OK:
+            return self._buffer_to_string()
+
+        raise BadRequestError()
+
+    @mqtt_login.setter
+    def mqtt_login(self, val):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_MQTT_LOGIN
+        if val is not None:
+            self._string_to_buffer(val)
+        self._send()
+
+    @property
+    def mqtt_password(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.GET_MQTT_PASSWORD
+        self._send()
+        if self._status == StatusCode.NOT_FOUND:
+            return None
+
+        if self._status == StatusCode.OK:
+            return self._buffer_to_string()
+
+        raise BadRequestError()
+
+    @mqtt_password.setter
+    def mqtt_password(self, val):
+        self._clearbuffer()
+        self._cmd = CmdCode.SET_MQTT_PASSWORD
+        if val is not None:
+            self._string_to_buffer(val)
+        self._send()
+
+    @property
     def weight(self):
         self._clearbuffer()
         self._cmd = CmdCode.GET_WEIGHT
@@ -551,23 +635,32 @@ class NeoBeeShell:
         self._send()
         return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
 
+    def reset(self):
+        self._clearbuffer()
+        self._cmd = CmdCode.RESET_ESP
+        self._send()
+
     def to_dict(self):
         _d = {}
-        _d["firmware_version"] = "{version[0]}.{version[1]}.{version[2]}".format(version=self.get_version())
-        _d['device_name'] = self.get_name()
-        _d['mac_address'] = str(self.get_mac_address())
+        _d["firmware_version"] = "{version[0]}.{version[1]}.{version[2]}".format(
+            version=self.get_version()
+        )
+        _d["device_name"] = self.get_name()
+        _d["mac_address"] = str(self.get_mac_address())
         _d["ssid"] = self.ssid
         _d["password"] = self.get_password()
         _d["wifi_sta_enabled"] = self.wifi_sta_active
         _d["deep_sleep_seconds"] = self.deep_sleep_seconds
-        _d['scale_offset'] = self.get_scale_offset()
+        _d["scale_offset"] = self.get_scale_offset()
         _d["scale_factor"] = self.get_scale_factor()
-        
+
         return _d
 
-#with NeoBeeShell(host="192.168.178.72") as shell:   
-with NeoBeeShell() as shell:
 
+with NeoBeeShell(host="192.168.178.72") as shell:
+    #with NeoBeeShell() as shell:
+
+    """
     shell.name = "NeoBee.One"
     shell.ssid = "RepeaterOben24"
     shell.set_password("4249789363748310")
@@ -576,11 +669,21 @@ with NeoBeeShell() as shell:
     shell.set_scale_factor(21.88)
     shell.activate_wifi_sta()
     shell.save_settings()
-    #d = shell.to_dict()
-    #print(shell.tare(1))
-    print(shell.weight)
-    print(shell.get_temperature())
-    #print(shell.calibrate(2962,1))
-    #print(json.dumps(d, ensure_ascii=True, indent=2))
-    #shell.save_settings()
+    """
+    print(f"mqtt server: {shell.mqtt_host}:{shell.mqtt_port}")
+    print(shell.mqtt_login)
+    shell.mqtt_password = None
+    shell.mqtt_host = "192.168.178.77"
+    shell.mqtt_port = 1882
     
+    print(shell.mqtt_password)
+    print(shell.wifi_password)
+    print(shell.ssid)
+    
+    # d = shell.to_dict()
+    # print(shell.tare(1))
+    # print(shell.calibrate(2962,1))
+    # print(json.dumps(d, ensure_ascii=True, indent=2))
+    # shell.save_settings()
+
+    shell.reset()

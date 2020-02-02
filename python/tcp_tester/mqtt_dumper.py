@@ -1,14 +1,25 @@
+from ipaddress import IPv4Address
+
 import paho.mqtt.client as mqtt
 
 def hello():
     print("Hello")
 
+def _print_buffer(buffer):
+    print(":".join("{:02x}".format(x) for x in buffer))
 
 def uint32_to_float(data):
     return ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]) / 100
 
 def handle_connect(data):
-    print("Connect")
+    mac = data[0:6]
+    ip = data[6:10]
+    ipaddr = IPv4Address(ip[0] << 24 | ip[1] << 16 | ip[2] << 8 | ip[3])
+    print(ipaddr)
+    mac_addr = ":".join([format(x, "02X") for x in mac])
+    print(mac_addr)
+    offset = uint32_to_float(data[10:14])
+    factor = uint32_to_float(data[14:18])
 
 def handle_rawdata(data):
     mac = data[0:6]

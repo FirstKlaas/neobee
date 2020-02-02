@@ -39,6 +39,7 @@ enum class CmdCode : uint8_t {
   RESET_SETTINGS   =   4,
   SAVE_SETTINGS    =   5,
   ERASE_SETTINGS   =   6,
+  RESET_ESP        =   7,
 
   GET_SCALE_OFFSET =  10,
   SET_SCALE_OFFSET =  11,
@@ -58,8 +59,13 @@ enum class CmdCode : uint8_t {
   SET_MQTT_HOST    =  31,
   GET_MQTT_PORT    =  32,
   SET_MQTT_PORT    =  33,
-  SET_MQTT_ACTIVE  =  36,
-  GET_MQTT_FLAGS   =  37,
+  GET_MQTT_LOGIN   =  34,
+  SET_MQTT_LOGIN   =  35,
+  GET_MQTT_PASSWORD = 36,
+  SET_MQTT_PASSWORD = 37,
+  
+  SET_MQTT_ACTIVE  =  38,
+  GET_MQTT_FLAGS   =  39,
 
   GET_TEMPERATURE  =  40,
   

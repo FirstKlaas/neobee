@@ -46,7 +46,7 @@ void NeoBeeMqtt::callback(char* topic, byte* payload, unsigned int length) {
 };
 
 bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
-    if (client.connected()) return true;
+    if (isConnected()) return true;
 
     uint8_t i = 0;
 
@@ -70,29 +70,33 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
         client.connect(clientId.c_str());
     };
 
-    #ifdef DEBUG
-    Serial.println();
-
     if (client.connected()) {
-        Serial.println("Connected successfully to mqtt server");
-        client.publish("/neobee/hive/connect", clientId.c_str());
+        uint8_t* bufferPtr(getBuffer());
+        uint32_t ip = uint32_t(WiFi.localIP());
+
+        WiFi.macAddress(bufferPtr);
+        bufferPtr += 6;
+        memcpy(bufferPtr, &ip, 4);
+        bufferPtr += 4;
+        writeDouble100(m_ctx.scale.offset, bufferPtr);
+        bufferPtr += 4;
+        writeFloat100(m_ctx.scale.factor, bufferPtr);
+        bufferPtr += 4;
+
+        client.publish("/neobee/hive/connect", getBuffer(), bufferPtr - getBuffer());
     } else {
+        #ifdef DEBUG
         Serial.println("Could not connect to mqtt server");
+        #endif
     };
-    #endif
-
-    /**
-     * Publish a boot up message
-     */
-    if (client.connected()) {
-        Serial.println("Publishing huhu");
-        client.publish("/neobee/hive/rawdata", "Huhu");
-    };
-
+    
     return client.connected();
 }
 
-void NeoBeeMqtt::sendMessage() {};
+bool NeoBeeMqtt::isConnected() 
+{
+    return client.connected();
+};
 
 uint8_t* NeoBeeMqtt::getBuffer() {
     if (m_buffer == nullptr) {

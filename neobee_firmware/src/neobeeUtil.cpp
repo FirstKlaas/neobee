@@ -78,3 +78,12 @@ String toHex8String(uint8_t *data, uint8_t size)
     tmp[size<<1] = '\0';
     return String(tmp);
 }
+
+void writeFloat100(float val, uint8_t* dest) {
+  writeInt32(int(val * 100.f + 0.5f), dest);
+}  
+
+void writeDouble100(double val, uint8_t* dest) {
+  writeInt32(int(val * 100. + 0.5), dest);
+}  
+

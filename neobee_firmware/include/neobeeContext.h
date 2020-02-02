@@ -5,6 +5,14 @@
 #include "neobeeTypes.h"
 #include "neobeeWifi.h"
 
+enum class MqttFlags : uint8_t {
+  FLAG_SSID_SET     = 0,
+  FLAG_PASSWORD_SET = 1,
+  FLAG_AUTH         = 2,
+  FLAG_HOST_SET     = 3,
+  FLAG_PORT_SET     = 4
+};
+
 // Data strucure to store relevant information
 // between two deep sleep cycles
 //
@@ -14,6 +22,44 @@ typedef struct {
   uint16_t port;                    // mqtt port
   char login[30];                   // login (optional)
   char password[30];                // password (optional)
+
+  bool hostnameSet() const { return host_name[0] != 0; };
+  bool portSet() const { return port != 0; };
+  bool loginSet() const { return login[0] != 0; };
+  bool passwordSet() const { return password[0] != 0; };
+  bool credentialsSet() const { return passwordSet() && loginSet(); };
+  bool serverSet() const { return hostnameSet() && portSet(); };
+  
+  // Setter
+
+  void setHostname(const uint8_t* src) {
+    memcpy(host_name, src, sizeof(host_name));
+  };
+
+  void setPort(uint16_t new_port) {
+    port = new_port;
+  };
+
+  void setLogin(const uint8_t* src) {
+    memcpy(login, src, sizeof(login));
+  };
+
+  void setPassword(const uint8_t* src) {
+    memcpy(password, src, sizeof(password));
+  };
+
+  void copyHostnameTo(uint8_t* dest) {
+    memcpy(dest, host_name, sizeof(host_name));
+  }
+
+  void copyLoginTo(uint8_t* dest) {
+    memcpy(dest, login, sizeof(login));
+  }
+
+  void copyPasswordTo(uint8_t* dest) {
+    memcpy(dest, password, sizeof(password));
+  }
+  
 } MqttServer;
 
 typedef struct context {
@@ -40,6 +86,7 @@ typedef struct context {
   inline void setDeepSleepSeconds(uint8_t highbyte, uint8_t lowbyte) {
     deep_sleep_seconds = ((highbyte << 8) | lowbyte);  
   }  
+  
   inline void setName(const uint8_t* new_name)
   {
     memcpy(name, new_name, sizeof(name));

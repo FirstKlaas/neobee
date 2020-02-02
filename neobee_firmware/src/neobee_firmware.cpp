@@ -76,7 +76,7 @@ void setup() {
   }; 
 
   #ifdef DEBUG
-  mode = OperationMode::IOT_MODE;
+  mode = OperationMode::CMD_MODE;
   #endif
 
   // Initialize the configuration data
@@ -150,7 +150,7 @@ void setup() {
   };
 
   /**
-   * Mqtt Test
+   * Setup mqtt.
    **/
   {
     uint8_t host[15] = "192.168.178.77";
@@ -207,16 +207,20 @@ void setup() {
 };
 
 void loop() {
+  static unsigned long currentMillis;
 
   // If we are in command mode check for 
   // new commands.
-  if (mode == OperationMode::CMD_MODE) { 
+  if (WiFi.isConnected()) { 
     cmd.checkForCommands();
-  } else {
-    #ifdef DEBUG
-    Serial.println("Measure and delay");
-    #endif
-    delay(5000);
-    mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
   }
+  if (millis() - currentMillis >= 5000) {
+    currentMillis = millis();
+    if (mqtt.isConnected()) {
+      #ifdef DEBUG
+      Serial.println("Measure and delay");
+      #endif
+      mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
+    }
+  } 
 }

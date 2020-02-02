@@ -360,6 +360,64 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             m_ctx.wifi_network.clearPassword();
             break;
 
+        case CmdCode::GET_MQTT_HOST:
+            clearBuffer(CmdCode::GET_MQTT_HOST, StatusCode::OK);
+            if (m_ctx.mqttServer.hostnameSet()) {
+                m_ctx.mqttServer.copyHostnameTo(m_data_space);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            };
+            break;
+
+        case CmdCode::SET_MQTT_HOST:
+            m_ctx.mqttServer.setHostname(m_data_space);
+            clearBuffer(CmdCode::SET_MQTT_HOST, StatusCode::OK);
+            break;
+
+        case CmdCode::GET_MQTT_PORT:
+            clearBuffer(CmdCode::GET_MQTT_PORT, StatusCode::OK);
+            if (m_ctx.mqttServer.portSet()) {
+                m_data_space[0] = highByte(m_ctx.mqttServer.port);
+                m_data_space[1] = lowByte(m_ctx.mqttServer.port);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            };
+            break;
+            
+        case CmdCode::SET_MQTT_PORT:
+            m_ctx.mqttServer.setPort((m_data_space[0] << 8) | m_data_space[1]);
+            clearBuffer(CmdCode::SET_MQTT_PORT, StatusCode::OK);
+            break;
+
+        case CmdCode::GET_MQTT_LOGIN:
+            clearBuffer(CmdCode::GET_MQTT_LOGIN, StatusCode::OK);
+            if (m_ctx.mqttServer.loginSet()) {
+                m_ctx.mqttServer.copyLoginTo(m_data_space);
+                Serial.println(stringFromByteAray((uint8_t*) (m_ctx.mqttServer.login),30));
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            };
+            break;
+        
+        case CmdCode::SET_MQTT_LOGIN:
+            m_ctx.mqttServer.setLogin(m_data_space);
+            clearBuffer(CmdCode::SET_MQTT_LOGIN, StatusCode::OK);
+            break;
+
+        case CmdCode::GET_MQTT_PASSWORD:
+            clearBuffer(CmdCode::GET_MQTT_PASSWORD, StatusCode::OK);
+            if (m_ctx.mqttServer.passwordSet()) {
+                m_ctx.mqttServer.copyPasswordTo(m_data_space);
+            } else {
+                setStatus(StatusCode::NOT_FOUND);
+            };
+            break;
+
+        case CmdCode::SET_MQTT_PASSWORD:
+            m_ctx.mqttServer.setHostname(m_data_space);
+            clearBuffer(CmdCode::SET_MQTT_PASSWORD, StatusCode::OK);
+            break;
+
         case CmdCode::SET_WIFI_ACTIVE:
             bitWrite(
                 m_ctx.wifi_network.flags, 
@@ -383,6 +441,13 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 writeInt32(F100(c), m_data_space);
             }
             break;
+
+        case CmdCode::RESET_ESP:
+            clearBuffer(CmdCode::RESET_ESP, StatusCode::OK);
+            sendResponse(client);
+            ESP.restart();
+            break;
+            
 
         default:
             #ifdef DEBUG 
