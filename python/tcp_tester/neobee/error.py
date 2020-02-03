@@ -20,4 +20,3 @@ class WrongResponseCommandError(NeoBeeError):
 
 class NetworkError(NeoBeeError):
     pass
-

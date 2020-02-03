@@ -11,6 +11,7 @@ class MacAddress:
     def __str__(self):
         return ":".join("{:02x}".format(x) for x in self._addr)
 
+
 class IPAddress:
     def __init__(self, data):
         self._addr = data[0:4]
@@ -23,4 +24,3 @@ class IPAddress:
 
     def __str__(self):
         return ".".join(f"{x}" for x in self._addr)
-

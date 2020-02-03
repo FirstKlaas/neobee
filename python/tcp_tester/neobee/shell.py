@@ -4,13 +4,18 @@ import socket
 from binascii import hexlify
 
 from .error import (
-    BadRequestError, AlreadyConnectedError, NotConnectedError, 
-    NetworkError, WrongResponseCommandError)
+    BadRequestError,
+    AlreadyConnectedError,
+    NotConnectedError,
+    NetworkError,
+    WrongResponseCommandError,
+)
 
 from .util import HighByte, LowByte
 from .net import MacAddress
 
 __ALL__ = ["NeoBeeShell"]
+
 
 class CmdCode(IntEnum):
     NOP = 0
@@ -42,8 +47,8 @@ class CmdCode(IntEnum):
     SET_MQTT_PORT = 33
     GET_MQTT_LOGIN = 34
     SET_MQTT_LOGIN = 35
-    GET_MQTT_PASSWORD = 36,
-    SET_MQTT_PASSWORD = 37,
+    GET_MQTT_PASSWORD = (36,)
+    SET_MQTT_PASSWORD = (37,)
     SET_MQTT_ACTIVE = 38
     GET_MQTT_FLAGS = 39
 
@@ -105,6 +110,7 @@ def myreceive(sckt, handler=None, max_tries=10, delay=10):
         handler(response)
 """
 
+
 class NeoBeeShell:
     def __init__(self, host="192.168.4.1", port=8888):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -142,9 +148,7 @@ class NeoBeeShell:
         self._buffer[:] = [0] * 32
 
     def _buffer_to_string(self):
-        return bytearray(
-            filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])
-        ).decode("ascii")
+        return bytearray(filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])).decode("ascii")
 
     def _string_to_buffer(self, val: str):
         if not val:
@@ -274,7 +278,7 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.GET_MAC_ADDRESS
         self._send()
-        mac = MacAddress([0]*6)
+        mac = MacAddress([0] * 6)
         for i in range(6):
             mac[i] = self[i]
         return mac
@@ -295,9 +299,7 @@ class NeoBeeShell:
         self._cmd = CmdCode.GET_NAME
         self._send()
         if self._status == StatusCode.OK:
-            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode(
-                "ascii"
-            )
+            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode("ascii")
         else:
             return None
 
@@ -521,14 +523,13 @@ class NeoBeeShell:
         raise BadRequestError()
 
     @mqtt_port.setter
-    def mqtt_port(self, port:int):
+    def mqtt_port(self, port: int):
         self._clearbuffer()
         self._cmd = CmdCode.SET_MQTT_PORT
         self[0] = HighByte(port)
         self[1] = LowByte(port)
         self._print_buffer()
         self._send()
-
 
     @property
     def mqtt_login(self):
