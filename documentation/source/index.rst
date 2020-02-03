@@ -11,7 +11,9 @@ Welcome to NeoBee's documentation!
    :caption: Contents:
 
    circuit
+   calibration
    commands
+   f100
 
 
 Indices and tables

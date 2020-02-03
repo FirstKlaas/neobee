@@ -116,7 +116,7 @@ Byte  Description
 Get Scale Offset
 ----------------
 
-Returns the current offset of the scvale. The offset defines the 0 level
+Returns the current offset of the scale. The offset defines the 0 level
 of the weight. Withe the `tare` command, you can 
 
 ===== ================================
@@ -143,8 +143,35 @@ Byte  Description
 06-29 0 [*unused*]
 ===== ================================
 
-GET_SCALE_FACTOR =  12,
-SET_SCALE_FACTOR =  13,
+Get Scale Factor
+----------------
+
+Returns the current factor of the scale. The factor converts the
+internal units into the external values. Check out the calibration
+page for more information.
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 12
+01    Request Modifier. Always 0
+02-29 0 [*unused*]
+===== ================================
+
+Set Scale Factor
+----------------
+
+Sets the current factor of the scale. Check out the calibration
+page for more information.
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 13
+01    Request Modifier. Always 0
+02-05 F100 value for the factor 
+06-29 0 [*unused*]
+===== ================================
 
 .. _ASCII: https://www.ascii-code.com/
 
