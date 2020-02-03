@@ -10,6 +10,8 @@ Welcome to NeoBee's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   circuit
+   commands
 
 
 Indices and tables
