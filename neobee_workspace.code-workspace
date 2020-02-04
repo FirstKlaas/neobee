@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "python/tcp_tester"
+		},
+		{
+			"path": "documentation"
 		}
 	],
 	"settings": {}

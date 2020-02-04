@@ -1,2 +1,28 @@
 F100 Values
 ===========
+
+All floating point values are encoded with a precision
+of to digits as int32 values. What exactly does this mean?
+
+Let's start with an example:
+----------------------------
+
+The current measured weight is ``22.7576``. The
+transmitted value is calculated like this:
+``int(22.7576 * 100.0 + 0.5)`` which gives us
+a value of ``2276``. The value is then packet
+in four bytes. The first two bytes represent then
+*HighWord* of the value and the next two bytes
+represent the *LowWord* of the value. Both *words*
+are packed in *HighByte* / *LowByte*.
+
+So the value ``22.7576`` would be converted
+to ``2276`` and then packed as: **TODO**
+
+
+=================== =========================
+``HighWord(val)``   ``(val >> 16) & 0xFFFF``
+``LowWord(val)``    ``val & 0xFFFF``
+``HighByte(val)``   ``(val >> 8) & 0xFF``
+``LowByte(val)``    ``val & 0xFF``
+=================== =========================
