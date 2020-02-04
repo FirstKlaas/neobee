@@ -11,6 +11,8 @@ Welcome to NeoBee's documentation!
    :caption: Contents:
 
    circuit
+   python_environment
+   entering_command_mode
    calibration
    commands
    f100
