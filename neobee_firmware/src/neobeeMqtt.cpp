@@ -8,7 +8,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 #define buffer_size 32 // The buffer size for messages to send
-
+#define NbMqtt m_ctx.mqttServer
 
 NeoBeeMqtt::NeoBeeMqtt(Context& ctx): 
 m_buffer(nullptr), m_ctx(ctx) 
@@ -48,6 +48,21 @@ void NeoBeeMqtt::callback(char* topic, byte* payload, unsigned int length) {
 bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     if (isConnected()) return true;
 
+    // Checking the prerequisites to connect to mqtt.
+    if (!m_ctx.mqttServer.hostnameSet()) {
+        #ifdef DEBUG
+        Serial.println("No hostname set.");
+        #endif
+        return false;
+    };
+
+    if (!m_ctx.mqttServer.portSet()) {
+        #ifdef DEBUG
+        Serial.println("No port set.");
+        #endif
+        return false;
+    };
+
     uint8_t i = 0;
 
     String clientId = stringFromByteAray(m_ctx.name, sizeof(m_ctx.name));
@@ -58,17 +73,47 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     Serial.println("Connecting to mqtt server");
     Serial.print("client: ");
     Serial.println(clientId);
+    Serial.print("Server: ");
+    Serial.print(NbMqtt.getHostName());
+    Serial.print(":");
+    Serial.println(NbMqtt.port);
     #endif
 
-    client.setServer("192.168.178.77", 1883);
+    String tmpHostName = NbMqtt.getHostName();
+    String tmpLogin = NbMqtt.getLogin();
+    String tmpPassword = NbMqtt.getPassword();
+
+    client.setServer(tmpHostName.c_str(), NbMqtt.port);
+    //client.setServer("192.168.178.77", 1883);
+    #ifdef DEBUG
+    if (!NbMqtt.loginSet()) Serial.println("No Login");
+    if (!NbMqtt.passwordSet()) Serial.println("No Password");
+    
+    if (NbMqtt.credentialsSet()) {
+        Serial.println("Connecting to mqtt server with credentials.");
+    } else {
+        Serial.println("Connecting to mqtt server without credentials.");
+    };
+    #endif
 
     while (!client.connected() && i < number_of_tries) {
         i++;
         #ifdef DEBUG
         Serial.print(".");
         #endif
-        client.connect(clientId.c_str());
+        // If credentials are set, use those.
+        if (NbMqtt.credentialsSet()) {
+            client.connect(
+                clientId.c_str(), 
+                tmpLogin.c_str(), 
+                tmpPassword.c_str());
+        } else {
+            client.connect(clientId.c_str());
+        };
     };
+    #ifdef DEBUG
+    Serial.println();
+    #endif
 
     if (client.connected()) {
         uint8_t* bufferPtr(getBuffer());
@@ -87,6 +132,9 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     } else {
         #ifdef DEBUG
         Serial.println("Could not connect to mqtt server");
+        Serial.println(NbMqtt.getHostName());
+        Serial.println(NbMqtt.port);
+        
         #endif
     };
     

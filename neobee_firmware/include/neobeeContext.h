@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "neobeeTypes.h"
 #include "neobeeWifi.h"
+#include "neobeeUtil.h"
 
 enum class MqttFlags : uint8_t {
   FLAG_SSID_SET     = 0,
@@ -29,7 +30,21 @@ typedef struct {
   bool passwordSet() const { return password[0] != 0; };
   bool credentialsSet() const { return passwordSet() && loginSet(); };
   bool serverSet() const { return hostnameSet() && portSet(); };
+
+  // Getter
+  String getHostName() {
+    return stringFromByteAray((uint8_t*) host_name, sizeof(host_name));
+  };
+
+  String getLogin() {
+    return stringFromByteAray((uint8_t*) login, sizeof(login));
+  };
+
+  String getPassword() {
+    return stringFromByteAray((uint8_t*) password, sizeof(password));
+  };
   
+
   // Setter
 
   void setHostname(const uint8_t* src) {
@@ -99,5 +114,9 @@ typedef struct context {
 
 const uint8_t ContextSize = sizeof(Context);
 
+void saveContext(Context* ctx);
+bool loadContext(Context* ctx);
+void eraseContext(Context* ctx);
+void resetContext(Context* ctx);
 
 #endif

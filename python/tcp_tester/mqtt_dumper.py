@@ -1,3 +1,4 @@
+import datetime
 from ipaddress import IPv4Address
 
 import paho.mqtt.client as mqtt
@@ -12,12 +13,12 @@ def handle_connect(data):
     offset = uint32_to_float(data[10:14])
     factor = uint32_to_float(data[14:18])
     
-    print()
     print("NeoBee device connected")
     print(f" => MAC            = {mac_addr}")
     print(f" => IP             = {ip_addr}")
     print(f" => Offset         = {offset}")
     print(f" => Factor         = {factor}")
+    print()
 
 def handle_rawdata(data):
     mac_addr = MacAddress(data[0:6])
@@ -25,12 +26,12 @@ def handle_rawdata(data):
     temp_inside = uint32_to_float(data[10:14])
     temp_outside = uint32_to_float(data[14:18])
 
-    print()
     print("Received sensor data")
     print(f" => MAC            = {mac_addr}")
     print(f" => Weight         = {weight}")
     print(f" => Temp (inside)  = {temp_inside}")
     print(f" => Temp (outside) = {temp_outside}")
+    print()
 
 commands = {
     "connect" : handle_connect,
@@ -38,6 +39,7 @@ commands = {
 }
 
 def on_message(client: mqtt.Client, userdata, message):
+    print(datetime.datetime.now())
     command = message.topic.split("/")[-1:][0]
     f = commands.get(command, None)
     if f is not None:
@@ -45,7 +47,8 @@ def on_message(client: mqtt.Client, userdata, message):
 
 client = mqtt.Client("dumper")
 client.on_message = on_message
-client.connect("192.168.178.77")
+client.username_pw_set("encoway", "encowa")
+client.connect("vm-web.lenze.digital")
 client.subscribe("/neobee/hive/#")
 
 client.loop_forever()

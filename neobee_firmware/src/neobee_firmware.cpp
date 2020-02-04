@@ -15,11 +15,10 @@
 #include "neobeeUtil.h"
 #include "neobeeThings.h"
 #include "neobeeMqtt.h"
+#include "setupWifi.h"
 
 #define ITERATIONS 10
 #define SERIAL_SPEED 9600
-#define MAX_WIFI_CONNECT_TRIES 50
-#define AP_SSID "NeoBee"
 #define STATUS_PIN D8
 #define RESET_BTN_PIN D0
 #define CMD_BTN_PIN D5
@@ -38,22 +37,26 @@ NeoBeeButton cmdButton = NeoBeeButton(CMD_BTN_PIN);
 // the assumption, that we can read sensor data and 
 // broadcast the data via mqtt. 
 OperationMode mode = OperationMode::IOT_MODE;
+WiFiMode wifiMode;
 
 #define NBWiFi      ctx.wifi_network
 #define MEMSTART    0
 #define EEPROM_SIZE 4096
 #define LED_PIN     D8
 
+unsigned long sketch_start_time;
+
 void setup() {
-  WiFi.disconnect();
-  WiFi.setAutoConnect(false);
-  WiFi.setAutoReconnect(false);
-  
-  #ifdef DEBUG
+    sketch_start_time = millis();
+
+    // Start optimistic ;)
+    mode = OperationMode::IOT_MODE;
+
+    #ifdef DEBUG
     Serial.begin(SERIAL_SPEED);
     delay(1000);
     while(!Serial) {
-      // Wait for serial connection
+        // Wait for serial connection
     };
     delay(500);
     Serial.println("#############################################");
@@ -61,166 +64,105 @@ void setup() {
     Serial.println("#############################################");
     Serial.print("MAC Address: ");
     Serial.println(WiFi.macAddress());
-  #endif
+    #endif
 
-  temperature.begin();
+    // Check, if the command mode button is pressed.
+    // If pressed, the mode is set to CMD_MODE
+    if (cmdButton.isPressed()) {
+        Serial.println("CMD Button pressed during boot.");
+        mode = OperationMode::CMD_MODE;  
+        statusLed.pulse(200,10,50);  
+    } else {
+        Serial.println("CMD Button not pressed");
+    }; 
+
+
+    // Initialize the configuration data
+    if (loadContext(&ctx)) {
+        #ifdef DEBUG
+        Serial.println("Context restored");
+        Serial.println(stringFromByteAray((uint8_t*)ctx.wifi_network.ssid, 30));
+        Serial.println(stringFromByteAray((uint8_t*)ctx.wifi_network.password, 30));
+        #endif
+    } else {
+        #ifdef DEBUG
+        Serial.println("Context created");
+        #endif
+    }
+
+    // Start the sensors
+    temperature.begin();
+    scale.begin();
   
-  // Check, if the command mode button is pressed.
-  // If pressed, the mode is set to CMD_MODE
-  if (cmdButton.isPressed()) {
-    Serial.println("CMD Button pressed during boot.");
-    mode = OperationMode::CMD_MODE;  
-    statusLed.pulse(200,5,50);  
-  } else {
-    Serial.println("CMD Button not pressed");
-  }; 
+    // Now setup the wifi network
+    wifiMode = setupWifi(ctx, statusLed);
 
-  #ifdef DEBUG
-  mode = OperationMode::CMD_MODE;
-  #endif
-
-  // Initialize the configuration data
-  if (loadContext(&ctx)) {
-    #ifdef DEBUG
-    Serial.println("Context restored");
-    Serial.println(stringFromByteAray((uint8_t*)ctx.wifi_network.ssid, 30));
-    Serial.println(stringFromByteAray((uint8_t*)ctx.wifi_network.password, 30));
-    
-    #endif
-  } else {
-    #ifdef DEBUG
-    Serial.println("Context created");
-    #endif
-  }
-  
-  #ifdef DEBUG
-  Serial.print("Configuration Size: ");
-  Serial.print((uint8_t) sizeof(ctx));
-  Serial.println(" bytes");
-  #endif
-
-  // Check, if we have all the information, to connect to 
-  // a wifi network.
-  if(ctx.wifi_network.canConnect()) {
-    uint8_t number_of_tries(0);
-
-    WiFi.mode(WIFI_STA);
-
-    #ifdef DEBUG
-    Serial.print("Trying to connect to ");
-    Serial.println(NBWiFi.ssid);
-    Serial.print("Using password: ");
-    Serial.println(NBWiFi.password);
-    #endif
-
-    // Try to connect to configured network.
-    // If the connection fails, we will fallback
-    // tp AP (Access Point) mode.
-    WiFi.begin(NBWiFi.ssid, NBWiFi.password);
-    while (!WiFi.isConnected() && number_of_tries < MAX_WIFI_CONNECT_TRIES) {
-      #ifdef DEBUG
-      Serial.print(".");
-      #endif
-      // Led On and Led Off for 250 ms. So we have delay of
-      // 250 ms in total
-      statusLed.pulse(250,1,250);
-      number_of_tries++;
+    if (wifiMode == WiFiMode::WIFI_AP) {
+        // When in AP mode, sending sensor data
+        // doesn't make any sense.
+        // Command mode is the only possible
+        // mode.
+        #ifdef DEBUG
+        Serial.println("We wifi is in AP mode. So switching to CMD mode.");
+        #endif
+        mode = OperationMode::CMD_MODE;
+    } else {
+        // We are in station mode, so it does make sense,
+        // to connect to the mqtt server (if configured)
+        #ifdef DEBUG
+        Serial.println("We are in station mode. Checking mqtt.");
+        #endif
+        mqtt.connect();
     };
-    // Print some information for the user.
-    #ifdef DEBUG
-    Serial.println();
-    if (WiFi.isConnected()) {
-      Serial.print("Succesfully connected to wifi after ");
-      Serial.print(number_of_tries);
-      Serial.println(" tries.");
-      Serial.print("NeoBee IP is ");
-      Serial.println(WiFi.localIP());
-      statusLed.pulse(1000,3,250);
-    }
-    #endif
-  } else {
-    // If we cannot connect, then call explicitly WiFI.disconnect.
-    // Without disconnecting, the STA mode will interfere the AP
-    // mode. No idea why, but there are several threads covering
-    // this topic.
-    #ifdef DEBUG
-    Serial.println("No wifi information. Going directly into AP mode.");
-    #endif
-    WiFi.disconnect();
-  };
 
-  /**
-   * Setup mqtt.
-   **/
-  {
-    uint8_t host[15] = "192.168.178.77";
-    mqtt.setHost(host);
-    mqtt.setPort(1883);
-    mqtt.connect();
-  }    
+    // Now starting the command mode. (if we
+    // are in the right mode)
+    if (mode == OperationMode::CMD_MODE) {
+        cmd.begin(); 
+    };
+  
+    // =================================================
+    // Now check for IOT Mode and deepSleep
+    // =================================================
+    if (mode == OperationMode::IOT_MODE) {
+        #ifdef DEBUG
+        Serial.print("Going to deep sleep for ");
+        Serial.print(ctx.getDeepSleepSeconds());
+        Serial.println(" seconds.");
+        #endif
+        mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
+        delay(1000); // Needs a delay, so the message is sent.
+        ESP.deepSleep(ctx.getDeepSleepSeconds() * 1E6 - (millis()) * 1E3);
+    };
 
-  // Connecting to the network maybe failed.
-  // or no network settings have been provided.
-  // Starting as an accesspoint.
-  if (!WiFi.isConnected()) {  
-    #ifdef DEBUG
-    Serial.println("Acting as an accesspoint.");
-    #endif 
-    // So, we are not connected. If we have all the
-    // information to connect, but still are not connected,
-    // then the connection failed. 
-    if (NBWiFi.canConnect()) {
-      #ifdef DEBUG
-      Serial.println("Could not connect. Switching to AP mode.");
-      #endif 
-    }
-    // Now activating Access Point
-    WiFi.mode(WIFI_AP);
-    bool success = WiFi.softAP(AP_SSID);
-    #ifdef DEBUG
-    Serial.println(success);
-    #endif 
-    
-    // switching status LED on permanently, to show,
-    // acess point is active.
+
+    // Turn the status led on
+    // to give feedback ti the user, that we are in
+    // command mode.
     statusLed.switchOn();
-    
-    #ifdef DEBUG
-    IPAddress myIP = WiFi.softAPIP();
-    Serial.print("AP IP address: ");
-    Serial.println(myIP);
-    #endif 
-  }
-
-  // Now starting the command mode. (if we
-  // are in the right mode)
-  if (mode == OperationMode::CMD_MODE) {
-    cmd.begin(); 
-  } else {
-    // Now we have two szenarios. If deepsleep
-    // is enabled, we send iot data and go to sleep.
-    // If not, we send the data in the loop.
-    #ifdef DEBUG
-    Serial.println("Measure and DeepSleep");
-    #endif
-  };
 };
 
 void loop() {
-  static unsigned long currentMillis;
+    static unsigned long currentMillis;
 
-  // If we are in command mode check for 
-  // new commands.
-  if (WiFi.isConnected()) { 
-    cmd.checkForCommands();
-  }
-  if (millis() - currentMillis >= 5000) {
-    currentMillis = millis();
-    if (mqtt.isConnected()) {
-      #ifdef DEBUG
-      Serial.println("Measure and delay");
-      #endif
-      mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
+    // If we are in command mode check for 
+    // new commands.
+    if (WiFi.isConnected() && mode == OperationMode::CMD_MODE) { 
+        cmd.checkForCommands();
     }
-  } 
+
+    // When in AP Mode, mqtt doesn't make any sense.
+    if (wifiMode != WiFiMode::WIFI_AP) {        
+        // Use a non blocking method to send
+        // sensor data every 5 seconds
+        if (millis() - currentMillis >= 5000) {
+            currentMillis = millis();
+            if (mqtt.isConnected()) {
+            #ifdef DEBUG
+            Serial.println("Measure and delay");
+            #endif
+            mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
+            }
+        } 
+    };
 }

@@ -1,12 +1,9 @@
 #ifndef neobeeUtil_h
 #define neobeeUtil_h
 
-#include "neobeeContext.h"
+#include "Arduino.h"
 
-void saveContext(Context* ctx);
-bool loadContext(Context* ctx);
-void eraseContext(Context* ctx);
-void resetContext(Context* ctx);
+void writeInt32(uint32_t value, uint8_t* dst);
 
 String stringFromByteAray(const uint8_t* src, const uint8_t size=1);
 

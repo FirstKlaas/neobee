@@ -35,6 +35,7 @@ class NeoBeeCmd
         uint8_t m_data_space_size;
         NeoBeeScale& m_scale;
         NeoBeeTemperature& m_temperature;
+        bool m_started;
 
         void sendResponse(WiFiClient& client, bool flush = true);
         void handleCommand(WiFiClient& client);

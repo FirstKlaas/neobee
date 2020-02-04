@@ -18,7 +18,8 @@ NeoBeeCmd::NeoBeeCmd(
     m_ctx(ctx), 
     m_port(port),
     m_scale(scale),
-    m_temperature(temp)
+    m_temperature(temp),
+    m_started(false)
 {};
 
 NeoBeeCmd::~NeoBeeCmd() {
@@ -27,20 +28,25 @@ NeoBeeCmd::~NeoBeeCmd() {
 
 void NeoBeeCmd::begin()
 {   
+    if (m_started) return;
+
     m_buffer = (uint8_t*) malloc(BUFFER_SIZE);
     m_data_space = m_buffer + HEADSIZE;
     m_data_space_size = BUFFER_SIZE - HEADSIZE;
     wifiServer = new WiFiServer(m_port);
     wifiServer->begin();
+    m_started = true;
 }
 
 void NeoBeeCmd::sendResponse(WiFiClient& client, bool flush) {
+    if (!m_started) return;
     client.write(m_buffer, BUFFER_SIZE);
     client.flush();
     clearBuffer();
 }
 
 void NeoBeeCmd::handleCommand(WiFiClient& client) {
+    if (!m_started) return;
     //printByteArray(m_buffer);
 
     CmdCode cmd = getCommand();
@@ -92,7 +98,6 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #ifdef DEBUG 
             Serial.println("SET_SCALE_OFFSET Request");
             #endif
-            printByteArray(m_data_space);
             m_scale.setOffset((double) (readInt32(m_data_space) / 100.f));
             clearBuffer(CmdCode::SET_SCALE_OFFSET, StatusCode::OK);
             #ifdef DEBUG 
@@ -386,6 +391,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             
         case CmdCode::SET_MQTT_PORT:
             m_ctx.mqttServer.setPort((m_data_space[0] << 8) | m_data_space[1]);
+            Serial.print("New port: ");
+            Serial.println(m_ctx.mqttServer.port);
             clearBuffer(CmdCode::SET_MQTT_PORT, StatusCode::OK);
             break;
 
@@ -414,7 +421,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             break;
 
         case CmdCode::SET_MQTT_PASSWORD:
-            m_ctx.mqttServer.setHostname(m_data_space);
+            m_ctx.mqttServer.setPassword(m_data_space);
             clearBuffer(CmdCode::SET_MQTT_PASSWORD, StatusCode::OK);
             break;
 
@@ -467,6 +474,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
  * command execution.
  **/
 void NeoBeeCmd::checkForCommands() {
+    if (!m_started) return;
     WiFiClient client = wifiServer->available();
 
     if (client) {

@@ -22,8 +22,9 @@
 
 enum class OperationMode : uint8_t {
   IOT_MODE          = 1,  // Starting wifi in access point or station mode
-  CMD_MODE          = 2   // Running in command mode or in broadcast mode
+  CMD_MODE          = 2,   // Running in command mode or in broadcast mode
 };
+
 
 enum class WifiFlags : uint8_t {
   FLAG_SSID_SET     = 1,
@@ -99,14 +100,6 @@ typedef struct {
   DeviceAddress addr_inside;        // Address of the inside temperature sensor
   DeviceAddress addr_outside;       // Address of the outside temperature sensor
 } Temperature;
-
-
-inline void writeInt32(uint32_t value, uint8_t* dst) {
-    dst[0] = (value >> 24) & 0xff;
-    dst[1] = (value >> 16) & 0xff;
-    dst[2] = (value >> 8) & 0xff;
-    dst[3] = value & 0xff;
-}
 
 inline uint32_t readInt32(uint8_t* dst)
 {

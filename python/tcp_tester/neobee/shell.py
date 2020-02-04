@@ -442,7 +442,6 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.GET_IDLE_TIME
         self._send()
-        self._print_buffer()
         return (self[0] << 8) | self[1]
 
     @deep_sleep_seconds.setter
@@ -455,7 +454,6 @@ class NeoBeeShell:
 
         self[0] = (val >> 8) & 255
         self[1] = val & 255
-        self._print_buffer()
         self._send()
 
     @property
@@ -469,9 +467,7 @@ class NeoBeeShell:
         self._clearbuffer()
         self._cmd = CmdCode.TARE
         self[0] = nr_times & 0xFF
-        self._print_buffer()
         self._send()
-        self._print_buffer()
         offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
         factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100
         return (offset, factor)
@@ -483,7 +479,6 @@ class NeoBeeShell:
         self[1] = ref_weight & 0xFF
         self[2] = count & 0xFF
         self._send()
-        self._print_buffer()
         offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
         factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100
         return (offset, factor)
@@ -518,7 +513,7 @@ class NeoBeeShell:
             return None
 
         if self._status == StatusCode.OK:
-            return (self[0] << 8) | self[1]
+            return ((self[0] << 8) | self[1])
 
         raise BadRequestError()
 
@@ -528,7 +523,6 @@ class NeoBeeShell:
         self._cmd = CmdCode.SET_MQTT_PORT
         self[0] = HighByte(port)
         self[1] = LowByte(port)
-        self._print_buffer()
         self._send()
 
     @property
@@ -600,7 +594,7 @@ class NeoBeeShell:
         _d["scale_offset"] = self.get_scale_offset()
         _d["scale_factor"] = self.get_scale_factor()
         _d["mqtt_host"] = self.mqtt_host
-        _d["mqtt_port"] = self.port
+        _d["mqtt_port"] = self.mqtt_port
         _d["mqtt_login"] = self.mqtt_login
         _d["mqtt_password"] = self.mqtt_password
 

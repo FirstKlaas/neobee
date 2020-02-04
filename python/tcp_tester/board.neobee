@@ -1,0 +1,15 @@
+{
+  "firmware_version": "0.1.0",
+  "device_name": "NeoBee.One",
+  "mac_address": "84:f3:eb:90:6d:c2",
+  "ssid": "RepeaterOben24",
+  "password": "4249789363748310",
+  "wifi_sta_enabled": true,
+  "deep_sleep_seconds": 30,
+  "scale_offset": 61191.0,
+  "scale_factor": 21.88,
+  "mqtt_host": "vm-web.lenze.digital",
+  "mqtt_port": 1883,
+  "mqtt_login": "encoway",
+  "mqtt_password": "encowa"
+}
