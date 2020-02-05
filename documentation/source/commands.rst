@@ -13,8 +13,8 @@ contains the commande code. The second byte contains command flags. For
 details read the related command documentation. The rest of the bytes contain
 the data.
 
-Get Name
---------
+[01] Get Name
+-------------
 
 Getting the human readable name of the board. The name of the board
 should be unique, although it cannot be guaranteed by the board itself.
@@ -24,13 +24,13 @@ Only ASCII_ characters are supported.
 ===== ================================
 Byte  Description
 ===== ================================
-00    Command byte. Always 001
+00    Command byte. Always 1
 01    Request Modifier. Always 0
 02-29 0 [*unused*]
 ===== ================================
 
-Set Name
---------
+[02] Set Name
+-------------
 
 Setting the human readable name of the board. THe maximum langth of
 th name is 30 bytes. All unused bytes in the request paket must be
@@ -39,40 +39,40 @@ set to 0.
 ===== ================================
 Byte  Description
 ===== ================================
-00    Command byte. Always 002
+00    Command byte. Always 2
 01    Status byte.
 02-29 Name (Unused bytes are zeroed)
 ===== ================================
 
-Get Flags
----------
+[03] Get Flags
+--------------
 
 Getting the flags., indicating the state of certain settings.
 
 ===== ================================
 Byte  Description
 ===== ================================
-00    Command byte. Always 003
+00    Command byte. Always 3
 01    Request Modifier. Always 0
 02-29 0 [*unused*]
 ===== ================================
 
-Reset Settings
---------------
+[04] Reset Settings
+-------------------
 
-Clears all settings. After rebooting the system, the board will 
+Clears all settings. After rebooting the system, the board will
 automatically go into command mode.
 
 ===== ================================
 Byte  Description
 ===== ================================
-00    Command byte. Always 004
+00    Command byte. Always 4
 01    Request Modifier. Always 0
 02-29 0 [*unused*]
 ===== ================================
 
-Save Settings
--------------
+[05] Save Settings
+------------------
 
 Saves the settings to the EEPROM.
 
@@ -84,11 +84,11 @@ Byte  Description
 02-29 0 [*unused*]
 ===== ================================
 
-Erase Settings
---------------
+[06] Erase Settings
+-------------------
 
 Similar to reset settings, baut also removes the magic bytes from
-EEPROM. 
+EEPROM.
 
 ===== ================================
 Byte  Description
@@ -99,8 +99,8 @@ Byte  Description
 ===== ================================
 
 
-Reset Board
------------
+[07] Reset Board
+----------------
 
 Rests the board. To be more precise, restarts the board. After a reset,
 all changes made to the board will take effect.
@@ -113,11 +113,11 @@ Byte  Description
 02-29 0 [*unused*]
 ===== ================================
 
-Get Scale Offset
-----------------
+[10] Get Scale Offset
+---------------------
 
 Returns the current offset of the scale. The offset defines the 0 level
-of the weight. Withe the `tare` command, you can 
+of the weight.
 
 ===== ================================
 Byte  Description
@@ -128,23 +128,23 @@ Byte  Description
 ===== ================================
 
 
-Set Scale Offset
-----------------
+[11] Set Scale Offset
+---------------------
 
 Sets the current offset of the scale. The offset defines the 0 level
-of the weight. 
+of the weight.
 
 ===== ================================
 Byte  Description
 ===== ================================
 00    Command byte. Always 11
 01    Request Modifier. Always 0
-02-05 F100 value for the offset 
+02-05 F100 value for the offset
 06-29 0 [*unused*]
 ===== ================================
 
-Get Scale Factor
-----------------
+[12] Get Scale Factor
+---------------------
 
 Returns the current factor of the scale. The factor converts the
 internal units into the external values. Check out the calibration
@@ -158,8 +158,8 @@ Byte  Description
 02-29 0 [*unused*]
 ===== ================================
 
-Set Scale Factor
-----------------
+[13] Set Scale Factor
+---------------------
 
 Sets the current factor of the scale. Check out the calibration
 page for more information.
@@ -169,9 +169,102 @@ Byte  Description
 ===== ================================
 00    Command byte. Always 13
 01    Request Modifier. Always 0
-02-05 F100 value for the factor 
+02-05 F100 value for the factor
 06-29 0 [*unused*]
 ===== ================================
+
+[20] Get SSID
+-------------
+
+Returns the wifi networkname name (the ssid)  to connect to. If no
+ssid was configured. Returns a ``NOT_FOUND`` status.
+
+**Request**
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 20
+01    Request Modifier. Always 0
+02-29 0 [*unused*]
+===== ================================
+
+**Response**
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 20
+01    Status. ``OK`` if name was set, ``NOT FOUND`` else.
+02-29 The ssid. Unused bytes are 0
+===== ================================
+
+
+[21] Set SSID
+-------------
+
+Set the ssid to connect to.
+
+**Request**
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 21
+01    Request Modifier. Always 0
+02-29 The name of the ssid. Unused bytes should be set to 0
+===== ================================
+
+[22] Clear SSID
+---------------
+
+Clears the ssid to connect to. When no ssid is set,
+the board will automatically go into AP mode after reboot.
+The preferred way to force AP mode is to do a
+``Set Wifi Active(False)`` request.
+
+**Request**
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 22
+01    Request Modifier. Always 0
+02-29 0 [*unused*]
+===== ================================
+
+[23] Get Password
+-----------------
+
+Gets the currently configured wifi password.
+
+[24] Set Password
+-----------------
+
+Sets the wifi password.
+
+[25] Clear password *(deprecated)*
+----------------------------------
+
+Clears the wifi password. This command is deprecated and
+will be removed in future releases. Please use
+``set password``, where the first byte of the name is 0.
+
+[26] Enable or disable wifi
+---------------------------
+
+Enables or disables the wifi connection.
+If diabled, the board will boot into AP
+mode after reboot. If enabled, it will try
+to connect to the configured wifi network.
+If no network is configured, the board will
+also go into AP mode
+
+[27] Get wifi flags *(deprecated)*
+----------------------------------
+
+Gets the wifi flags
+
 
 .. _ASCII: https://www.ascii-code.com/
 

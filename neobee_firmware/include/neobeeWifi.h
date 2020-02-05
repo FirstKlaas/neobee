@@ -53,6 +53,8 @@ typedef struct wifi_network {
         return bitRead(flags, int(WifiFlags::FLAG_SSID_SET));
     }
   
+    // TODO: If the first byte is 0, we have an invalid ssid.
+    // Should be the same like clear_ssid
     inline void setSSID(const uint8_t* data) {
         const uint8_t size = sizeof(ssid)-1;
         memcpy(ssid, data, size);
