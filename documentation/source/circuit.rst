@@ -17,5 +17,5 @@ to `GND`. But if done so, it is impossible to upload new firmware.
 Therefore I integrated a jumper. So remove the jumper before flashing
 and put it on afterwards.
 
-.. image:: _static/circuit.png
+.. image:: drawings/circuit.png
 
