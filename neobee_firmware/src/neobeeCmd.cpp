@@ -87,7 +87,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             switch(method) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
-                    if (m_ctx.hasOffset()) {
+                    if (m_scale.hasOffset()) {
                         writeInt32(int(m_scale.getOffset() * 100.0 + 0.5), m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
@@ -125,28 +125,12 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     break;
             };
             break;
-
-        case CmdCode::GET_FLAGS:
-            #ifdef DEBUG 
-            Serial.println("GET_FLAGS Request");
-            #endif
-            clearBuffer(CmdCode::GET_FLAGS, StatusCode::OK);
-            m_data_space[0] = m_ctx.flags;
-            break;
-
-        case CmdCode::GET_WIFI_FLAGS:
-            #ifdef DEBUG 
-            Serial.println("GET_WIFI_FLAGS Request");
-            #endif
-            clearBuffer(CmdCode::GET_WIFI_FLAGS, StatusCode::OK);
-            m_data_space[0] = m_ctx.wifi_network.flags;
-            break;
-
+            
         case CmdCode::SCALE_FACTOR:
             switch(method) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::OK);
-                    if (m_ctx.hasFactor()) {
+                    if (m_ctx.scale.hasFactor()) {
                         writeInt32((int)(m_ctx.scale.factor * 100.0 + 0.5), m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
@@ -195,20 +179,22 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 1 : LOW byte of the reference weight
              * 2 : Number of times to measure to build an average 
              **/
-            uint16_t ref_weight;
+            {
+                uint16_t ref_weight((m_data_space[0] << 8) | m_data_space[1]);
 
-            #ifdef DEBUG 
-            Serial.println("CALIBRATE Request");
-            #endif
-            
-            if (m_data_space[2] == 0 || ref_weight == 0) {
-                clearBuffer(CmdCode::CALIBRATE, StatusCode::BAD_REQUEST);    
-            } else {
-                clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
-                m_scale.begin();
-                m_scale.calibrate(ref_weight, m_data_space[2]);
-                writeInt32(int(m_ctx.scale.offset * 100 + 0.5), m_data_space);
-                writeInt32(int(m_ctx.scale.factor * 100 + 0.5), m_data_space + 4);
+                #ifdef DEBUG 
+                Serial.println("CALIBRATE Request");
+                #endif
+                
+                if (m_data_space[2] == 0 || ref_weight == 0) {
+                    clearBuffer(CmdCode::CALIBRATE, StatusCode::BAD_REQUEST);    
+                } else {
+                    clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
+                    m_scale.begin();
+                    m_scale.calibrate(ref_weight, m_data_space[2]);
+                    writeInt32(int(m_ctx.scale.offset * 100 + 0.5), m_data_space);
+                    writeInt32(int(m_ctx.scale.factor * 100 + 0.5), m_data_space + 4);
+                };
             };
             break;
 
@@ -249,23 +235,6 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 default:
                     clearBuffer(CmdCode::IDLE_TIME, StatusCode::BAD_METHOD);
                     break;
-            };
-            break;
-
-
-        case CmdCode::SET_DEEP_SLEEP:
-            #ifdef DEBUG
-            Serial.print("SET_DEEP_SLEEP (");
-            Serial.print(m_data_space[0]);
-            Serial.print(")");
-            #endif
-            setStatus(StatusCode::OK);
-            if (m_data_space[0] == 1) {
-                m_ctx.enableDeepSleep();
-            } else if (m_data_space[0] == 0) {
-                m_ctx.disableDeepSleep();
-            } else {
-                setStatus(StatusCode::BAD_REQUEST);
             };
             break;
 
@@ -459,14 +428,6 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     clearBuffer(CmdCode::MQTT_PASSWORD, StatusCode::BAD_METHOD);
                     break;
             };
-            break;
-
-        case CmdCode::SET_WIFI_ACTIVE:
-            bitWrite(
-                m_ctx.wifi_network.flags, 
-                int(WifiFlags::FLAG_ACTIVE), 
-                m_data_space[0] & 1); 
-            clearBuffer(CmdCode::SET_WIFI_ACTIVE, StatusCode::OK);
             break;
 
         case CmdCode::GET_TEMPERATURE:

@@ -89,24 +89,21 @@ double NeoBeeScale::getOffset() {
 }
 
 void NeoBeeScale::setOffset(const double offset) {
-  m_ctx.scale.offset = offset;
-  bitWrite(m_ctx.flags, FLAG_OFFSET_SET, (m_ctx.scale.offset > 0.));
+  m_ctx.scale.setOffset(offset);
 }
 
 float NeoBeeScale::getFactor() {
-  return m_ctx.scale.factor;
+  return m_ctx.scale.getFactor();
 }
 
 void NeoBeeScale::setFactor(const float factor) {
-  m_ctx.scale.factor = factor;
-  bitSet(m_ctx.flags, FLAG_FACTOR_SET);
+  m_ctx.scale.setFactor(factor);
 }
 
 uint8_t NeoBeeScale::getGain() {
-  return m_ctx.scale.gain;
+  return m_ctx.scale.getGain();
 }
 
 void NeoBeeScale::setGain(const uint8_t gain) {
-  m_ctx.scale.gain = gain;
-  bitSet(m_ctx.flags, FLAG_GAIN_SET);
+  m_ctx.scale.setGain(gain);
 }

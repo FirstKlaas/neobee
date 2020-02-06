@@ -17,15 +17,15 @@ class NeoBeeScale
 
     double getOffset();
     void setOffset(const double offset);
-    inline bool hasOffset() { return bitRead(m_ctx.flags, FLAG_OFFSET_SET); };
+    inline bool hasOffset() { return m_ctx.scale.hasOffset(); };
 
     float getFactor();
     void setFactor(const float factor);
-    inline bool hasFactor() { return bitRead(m_ctx.flags, FLAG_FACTOR_SET); };
+    inline bool hasFactor() { return m_ctx.scale.hasFactor(); };
 
     uint8_t getGain();
     void setGain(const uint8_t gain);
-    inline bool hasGain() { return bitRead(m_ctx.flags, FLAG_GAIN_SET); };
+    inline bool hasGain() { return m_ctx.scale.hasGain(); };
 
     void tare(uint8_t ntimes = 10);
     

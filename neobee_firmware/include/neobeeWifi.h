@@ -6,37 +6,23 @@
 
 typedef struct wifi_network {
 
-    uint8_t flags;                    // Wifi flags
+    uint8_t reserved;                 // Wifi flags
     char ssid[31];                    // 0-terminated name of the wifi network
     char password[31];                // 0-terminated password
     uint8_t channel;
 
     inline bool canConnect() const {
-        return hasPassword() & hasSSID() & isActive();
-    }
-
-    inline bool isActive() const {
-        #ifdef DEBUG
-        Serial.print("Is Active: ");
-        Serial.println(bitRead(flags, int(WifiFlags::FLAG_ACTIVE)));
-        #endif
-        return bitRead(flags, int(WifiFlags::FLAG_ACTIVE));
+        return hasPassword() & hasSSID();
     }
 
     inline bool hasPassword() const {
-        #ifdef DEBUG
-        Serial.print("Has password: ");
-        Serial.println(bitRead(flags, int(WifiFlags::FLAG_PASSWORD_SET)));
-        #endif
-
-        return bitRead(flags, int(WifiFlags::FLAG_PASSWORD_SET));
+        return password[0] > 0;
     }
 
     inline void setPassword(const uint8_t* data) {
         const uint8_t size = sizeof(password)-1;
         memcpy(password, data, size);
         password[size] = 0; // Make shure the array is 0 terminated
-        bitSet(flags, int(WifiFlags::FLAG_PASSWORD_SET));
     }
 
     inline void getPassword(uint8_t* dst) const {
@@ -46,11 +32,10 @@ typedef struct wifi_network {
 
     inline void clearPassword() {
         memset(password, 0, sizeof(password));
-        bitClear(flags, int(WifiFlags::FLAG_PASSWORD_SET));
     }
 
     inline bool hasSSID() const {
-        return bitRead(flags, int(WifiFlags::FLAG_SSID_SET));
+        return ssid[0] > 0;
     }
   
     // TODO: If the first byte is 0, we have an invalid ssid.
@@ -59,13 +44,6 @@ typedef struct wifi_network {
         const uint8_t size = sizeof(ssid)-1;
         memcpy(ssid, data, size);
         ssid[size] = 0;
-        bitSet(flags, int(WifiFlags::FLAG_SSID_SET));
-        #ifdef DEBUG
-        Serial.print("Setting ssid ");
-        Serial.print(ssid);
-        Serial.print(" flag = ");
-        Serial.println(bitRead(flags, int(WifiFlags::FLAG_SSID_SET)));
-        #endif
     }
 
     inline bool getSSID(uint8_t* dst) const {
@@ -80,11 +58,9 @@ typedef struct wifi_network {
 
   inline void clearSSID() {
     memset(ssid, 0, sizeof(ssid));
-    bitClear(flags, int(WifiFlags::FLAG_SSID_SET));
   }
 
   inline void reset() {
-    flags = 0;
     memset(ssid, 0, sizeof(ssid));
     memset(password, 0, sizeof(password));
     channel = 1;

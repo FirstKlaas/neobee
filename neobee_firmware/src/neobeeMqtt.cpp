@@ -17,7 +17,6 @@ m_buffer(nullptr), m_ctx(ctx)
     memset(m_ctx.mqttServer.login,0,30);
     memset(m_ctx.mqttServer.password,0,30);
     m_ctx.mqttServer.port = 0;
-    m_ctx.mqttServer.flags = 0;
     client.setCallback([this] (char* topic, byte* payload, unsigned int length) { this->callback(topic, payload, length); }); 
 };
 

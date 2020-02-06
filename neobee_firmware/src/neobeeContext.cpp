@@ -16,7 +16,6 @@ void saveContext(Context* ctx) {
 
 void resetContext(Context* ctx) {
     memcpy(ctx->magic_bytes, "NEOBEE", 6);
-    ctx->flags=0;
     memset(ctx->name,0,sizeof(ctx->name));
     ctx->scale.offset = 0.f;
     ctx->scale.factor = 1.f;
@@ -53,6 +52,5 @@ void eraseContext(Context* ctx) {
     Serial.println("Deleting context");
     #endif
     memset(ctx->magic_bytes, 0, 7);
-    ctx->flags = 0;
     saveContext(ctx);  
 }
