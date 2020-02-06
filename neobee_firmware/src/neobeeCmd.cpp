@@ -50,6 +50,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
     //printByteArray(m_buffer);
 
     CmdCode cmd = getCommand();
+    RequestMethod method = getMethod();
+
     switch (cmd) {
         case CmdCode::NOP:
             #ifdef DEBUG 
@@ -58,63 +60,70 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             clearBuffer(CmdCode::NOP, StatusCode::OK); 
             break;
 
-        case CmdCode::GET_NAME:
-            #ifdef DEBUG 
-            Serial.println("GET_NAME Request");
-            #endif
-            clearBuffer(CmdCode::GET_NAME, StatusCode::OK);
-            if (m_ctx.hasName()) {
-                memcpy(m_data_space, m_ctx.name, sizeof(m_ctx.name));
-                setStatus(StatusCode::OK);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
-            }
+        case CmdCode::NAME:
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::NAME, StatusCode::OK);
+                    if (m_ctx.hasName()) {
+                        memcpy(m_data_space, m_ctx.name, sizeof(m_ctx.name));
+                        setStatus(StatusCode::OK);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    }
+                    break;
+
+                case RequestMethod::PUT:
+                    m_ctx.setName(m_data_space);
+                    clearBuffer(CmdCode::NAME, StatusCode::OK);
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::NAME, StatusCode::BAD_METHOD);
+                    break;
+            };
             break;
 
-        case CmdCode::SET_NAME:
-            #ifdef DEBUG 
-            Serial.println("SET_NAME Request");
-            #endif
-            m_ctx.setName(m_data_space);
-            clearBuffer(CmdCode::SET_NAME, StatusCode::OK);
-            break;
+        case CmdCode::SCALE_OFFSET:
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
+                    if (m_ctx.hasOffset()) {
+                        writeInt32(int(m_scale.getOffset() * 100.0 + 0.5), m_data_space);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    }
+                    break;
 
-        case CmdCode::GET_SCALE_OFFSET:
-            #ifdef DEBUG 
-            Serial.println("GET_SCALE_OFFSET Request");
-            #endif
-            clearBuffer(CmdCode::GET_SCALE_OFFSET, StatusCode::OK);
-            if (m_ctx.hasOffset()) {
-                #ifdef DEBUG
-                Serial.println("Write offset to data space");
-                #endif
-                writeInt32(int(m_scale.getOffset() * 100.0 + 0.5), m_data_space);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
-            }
-            break;
+                case RequestMethod::PUT:
+                    m_scale.setOffset((double) (readInt32(m_data_space) / 100.f));
+                    clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
+                    break;
+                
+                case RequestMethod::DELETE:
+                    m_scale.setOffset(0.);
+                    clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
+                    break;
 
-        case CmdCode::SET_SCALE_OFFSET:
-            #ifdef DEBUG 
-            Serial.println("SET_SCALE_OFFSET Request");
-            #endif
-            m_scale.setOffset((double) (readInt32(m_data_space) / 100.f));
-            clearBuffer(CmdCode::SET_SCALE_OFFSET, StatusCode::OK);
-            #ifdef DEBUG 
-            Serial.print("New offset is:");
-            Serial.println(m_scale.getOffset());            
-            #endif
+                default:
+                    clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::BAD_METHOD);
+                    break;
+            };
             break;
 
         /* ------------------------------------
          * GET_MAC_ADDRESS
          */    
         case CmdCode::GET_MAC_ADDRESS:
-            #ifdef DEBUG 
-            Serial.println("GET_MAC_ADDRESS Request");
-            #endif
-            clearBuffer(CmdCode::GET_MAC_ADDRESS, StatusCode::OK);
-            WiFi.macAddress(m_data_space);
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::GET_MAC_ADDRESS, StatusCode::OK);
+                    WiFi.macAddress(m_data_space);
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::GET_MAC_ADDRESS, StatusCode::BAD_METHOD);
+                    break;
+            };
             break;
 
         case CmdCode::GET_FLAGS:
@@ -133,28 +142,26 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             m_data_space[0] = m_ctx.wifi_network.flags;
             break;
 
-        case CmdCode::GET_SCALE_FACTOR:
-            #ifdef DEBUG 
-            Serial.println("GET_SCALE_FACTOR Request");
-            #endif
-            clearBuffer(CmdCode::GET_SCALE_FACTOR, StatusCode::OK);
-            if (m_ctx.hasFactor()) {
-                writeInt32((int)(m_ctx.scale.factor * 100.0 + 0.5), m_data_space);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
-            };
-            break;
+        case CmdCode::SCALE_FACTOR:
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::OK);
+                    if (m_ctx.hasFactor()) {
+                        writeInt32((int)(m_ctx.scale.factor * 100.0 + 0.5), m_data_space);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    };
+                    break;
 
-        case CmdCode::SET_SCALE_FACTOR:
-            #ifdef DEBUG 
-            Serial.println("SET_SCALE_FACTOR Request");
-            #endif
-            m_scale.setFactor(readInt32(m_data_space) / 100.f);
-            clearBuffer(CmdCode::SET_SCALE_FACTOR, StatusCode::OK);
-            #ifdef DEBUG 
-            Serial.println(m_scale.getFactor());
-            #endif
-            
+                case RequestMethod::PUT:
+                    m_scale.setFactor(readInt32(m_data_space) / 100.f);
+                    clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::OK);
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::BAD_METHOD);
+                    break;
+            };            
             break;
 
         case CmdCode::TARE:
@@ -224,50 +231,27 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             m_data_space[2] = 0;
             break;
 
-        /**
-         * Setting the idle time in seconds (duration for deep sleep).
-         * The value is a two byte value. High-Byte in the first and
-         * low-byte in th second byte of the data space of the command.
-         */
-        case CmdCode::SET_IDLE_TIME:
+        case CmdCode::IDLE_TIME:
+            switch (method) {
+                case RequestMethod::PUT:
+                    m_ctx.setDeepSleepSeconds(m_data_space[0], m_data_space[1]);
+                    clearBuffer(CmdCode::IDLE_TIME, StatusCode::OK);
+                    m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
+                    m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
+                    break;
 
-            /**
-             * SET_IDLE_TIME command
-             * 
-             * Data bytes
-             * ---------------------------------------------------------------
-             * 0 : HIGH byte of the idle time
-             * 1 : LOW byte of the idle time
-             **/
-            m_ctx.setDeepSleepSeconds(m_data_space[0], m_data_space[1]);
-            #ifdef DEBUG
-            Serial.print("SET_IDLE_TIME ");
-            printByteArray(m_data_space, 4);
-            Serial.print("New value: ");
-            Serial.println(m_ctx.getDeepSleepSeconds());            
-            #endif
-            clearBuffer(CmdCode::SET_IDLE_TIME, StatusCode::OK);
-            m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
-            m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::IDLE_TIME, StatusCode::OK);
+                    m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
+                    m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::IDLE_TIME, StatusCode::BAD_METHOD);
+                    break;
+            };
             break;
 
-        case CmdCode::GET_IDLE_TIME:
-            /**
-             * GET_IDLE_TIME command
-             * 
-             * Data bytes
-             * ---------------------------------------------------------------
-             * 0 : HIGH byte of the idle time
-             * 1 : LOW byte of the idle time
-             **/
-            #ifdef DEBUG
-            Serial.print("Get Idle Time - ");
-            Serial.println(m_ctx.getDeepSleepSeconds());
-            #endif
-            clearBuffer(CmdCode::GET_IDLE_TIME, StatusCode::OK);
-            m_data_space[0] = highByte(m_ctx.getDeepSleepSeconds()); // HIGH BYTE
-            m_data_space[1] = lowByte(m_ctx.getDeepSleepSeconds());  // LOW BYTE
-            break;
 
         case CmdCode::SET_DEEP_SLEEP:
             #ifdef DEBUG
@@ -324,105 +308,157 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             eraseContext(&m_ctx);
             break;
 
-        case CmdCode::GET_SSID:
+        case CmdCode::SSID:
             #ifdef DEBUG
-            Serial.println("GET SSID ");
+            Serial.println("SSID ");
             #endif
-            clearBuffer(CmdCode::GET_SSID, StatusCode::OK);
-            if (m_ctx.wifi_network.hasSSID()) {
-                m_ctx.wifi_network.getSSID(m_data_space);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
+            switch (method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::SSID, StatusCode::OK);
+                    if (m_ctx.wifi_network.hasSSID()) {
+                        m_ctx.wifi_network.getSSID(m_data_space);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    };
+                    break;
+
+                case RequestMethod::PUT:
+                    m_ctx.wifi_network.setSSID(m_data_space);
+                    clearBuffer(CmdCode::SSID, StatusCode::OK);
+                    break;
+
+                case RequestMethod::DELETE:
+                    clearBuffer(CmdCode::SSID, StatusCode::OK);
+                    m_ctx.wifi_network.clearSSID();
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::SSID, StatusCode::BAD_METHOD);
+                    m_data_space[0] = static_cast<uint8_t>(method);
+                    break;
+            };
+            break;   
+
+        case CmdCode::PASSWORD:
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::PASSWORD, StatusCode::OK);
+                    if (m_ctx.wifi_network.hasPassword()) {
+                        m_ctx.wifi_network.getPassword(m_data_space);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    }
+                    break;
+
+                case RequestMethod::PUT:        
+                    m_ctx.wifi_network.setPassword(m_data_space);
+                    clearBuffer(CmdCode::PASSWORD, StatusCode::OK);
+                    break;
+                
+                case RequestMethod::DELETE:
+                    clearBuffer(CmdCode::PASSWORD, StatusCode::OK);
+                    m_ctx.wifi_network.clearPassword();
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::PASSWORD, StatusCode::BAD_METHOD);
+                    break;
             };
             break;
 
-        case CmdCode::SET_SSID:
-            m_ctx.wifi_network.setSSID(m_data_space);
-            clearBuffer(CmdCode::SET_SSID, StatusCode::OK);
-            break;
+        case CmdCode::MQTT_HOST:
+            switch (method) {
+                case RequestMethod::GET:            
+                    clearBuffer(CmdCode::MQTT_HOST, StatusCode::OK);
+                    if (m_ctx.mqttServer.hostnameSet()) {
+                        m_ctx.mqttServer.copyHostnameTo(m_data_space);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    };
+                    break;
 
-        case CmdCode::CLEAR_SSID:
-            clearBuffer(CmdCode::CLEAR_SSID, StatusCode::OK);
-            m_ctx.wifi_network.clearSSID();
-    	    break;
+                case RequestMethod::PUT:
+                    m_ctx.mqttServer.setHostname(m_data_space);
+                    clearBuffer(CmdCode::MQTT_HOST, StatusCode::OK);
+                    break;
 
-        case CmdCode::GET_PASSWORD:
-            clearBuffer(CmdCode::GET_PASSWORD, StatusCode::OK);
-            if (m_ctx.wifi_network.hasPassword()) {
-                m_ctx.wifi_network.getPassword(m_data_space);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
-            }
-            break;
-        
-        case CmdCode::SET_PASSWORD:
-            m_ctx.wifi_network.setPassword(m_data_space);
-            clearBuffer(CmdCode::SET_PASSWORD, StatusCode::OK);
-            break;
+                case RequestMethod::DELETE:
+                    m_ctx.mqttServer.clearHostname();
+                    clearBuffer(CmdCode::MQTT_HOST, StatusCode::OK);
+                    break;
 
-        case CmdCode::CLEAR_PASSWORD:
-            clearBuffer(CmdCode::CLEAR_PASSWORD, StatusCode::OK);
-            m_ctx.wifi_network.clearPassword();
-            break;
-
-        case CmdCode::GET_MQTT_HOST:
-            clearBuffer(CmdCode::GET_MQTT_HOST, StatusCode::OK);
-            if (m_ctx.mqttServer.hostnameSet()) {
-                m_ctx.mqttServer.copyHostnameTo(m_data_space);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
+                default:
+                    clearBuffer(CmdCode::MQTT_HOST, StatusCode::BAD_METHOD);
+                    break;
             };
             break;
 
-        case CmdCode::SET_MQTT_HOST:
-            m_ctx.mqttServer.setHostname(m_data_space);
-            clearBuffer(CmdCode::SET_MQTT_HOST, StatusCode::OK);
-            break;
+        case CmdCode::MQTT_PORT:
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::MQTT_PORT, StatusCode::OK);
+                    if (m_ctx.mqttServer.portSet()) {
+                        m_data_space[0] = highByte(m_ctx.mqttServer.port);
+                        m_data_space[1] = lowByte(m_ctx.mqttServer.port);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    };
+                    break;
 
-        case CmdCode::GET_MQTT_PORT:
-            clearBuffer(CmdCode::GET_MQTT_PORT, StatusCode::OK);
-            if (m_ctx.mqttServer.portSet()) {
-                m_data_space[0] = highByte(m_ctx.mqttServer.port);
-                m_data_space[1] = lowByte(m_ctx.mqttServer.port);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
+                case RequestMethod::PUT:
+                    m_ctx.mqttServer.setPort((m_data_space[0] << 8) | m_data_space[1]);
+                    clearBuffer(CmdCode::MQTT_PORT, StatusCode::OK);
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::MQTT_PORT, StatusCode::BAD_METHOD);
+                    break;
             };
             break;
             
-        case CmdCode::SET_MQTT_PORT:
-            m_ctx.mqttServer.setPort((m_data_space[0] << 8) | m_data_space[1]);
-            Serial.print("New port: ");
-            Serial.println(m_ctx.mqttServer.port);
-            clearBuffer(CmdCode::SET_MQTT_PORT, StatusCode::OK);
-            break;
+        case CmdCode::MQTT_LOGIN:
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::MQTT_LOGIN, StatusCode::OK);
+                    if (m_ctx.mqttServer.loginSet()) {
+                        m_ctx.mqttServer.copyLoginTo(m_data_space);
+                        Serial.println(stringFromByteAray((uint8_t*) (m_ctx.mqttServer.login),30));
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    };
+                    break;
 
-        case CmdCode::GET_MQTT_LOGIN:
-            clearBuffer(CmdCode::GET_MQTT_LOGIN, StatusCode::OK);
-            if (m_ctx.mqttServer.loginSet()) {
-                m_ctx.mqttServer.copyLoginTo(m_data_space);
-                Serial.println(stringFromByteAray((uint8_t*) (m_ctx.mqttServer.login),30));
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
-            };
-            break;
-        
-        case CmdCode::SET_MQTT_LOGIN:
-            m_ctx.mqttServer.setLogin(m_data_space);
-            clearBuffer(CmdCode::SET_MQTT_LOGIN, StatusCode::OK);
-            break;
+                case RequestMethod::PUT:        
+                    m_ctx.mqttServer.setLogin(m_data_space);
+                    clearBuffer(CmdCode::MQTT_LOGIN, StatusCode::OK);
+                    break;
 
-        case CmdCode::GET_MQTT_PASSWORD:
-            clearBuffer(CmdCode::GET_MQTT_PASSWORD, StatusCode::OK);
-            if (m_ctx.mqttServer.passwordSet()) {
-                m_ctx.mqttServer.copyPasswordTo(m_data_space);
-            } else {
-                setStatus(StatusCode::NOT_FOUND);
+                default:
+                    clearBuffer(CmdCode::MQTT_LOGIN, StatusCode::BAD_METHOD);
+                    break;
             };
             break;
 
-        case CmdCode::SET_MQTT_PASSWORD:
-            m_ctx.mqttServer.setPassword(m_data_space);
-            clearBuffer(CmdCode::SET_MQTT_PASSWORD, StatusCode::OK);
+        case CmdCode::MQTT_PASSWORD:
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::MQTT_PASSWORD, StatusCode::OK);
+                    if (m_ctx.mqttServer.passwordSet()) {
+                        m_ctx.mqttServer.copyPasswordTo(m_data_space);
+                    } else {
+                        setStatus(StatusCode::NOT_FOUND);
+                    };
+                    break;
+
+                case RequestMethod::PUT:
+                    m_ctx.mqttServer.setPassword(m_data_space);
+                    clearBuffer(CmdCode::MQTT_PASSWORD, StatusCode::OK);
+                    break;
+
+                default:
+                    clearBuffer(CmdCode::MQTT_PASSWORD, StatusCode::BAD_METHOD);
+                    break;
+            };
             break;
 
         case CmdCode::SET_WIFI_ACTIVE:

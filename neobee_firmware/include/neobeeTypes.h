@@ -34,46 +34,34 @@ enum class WifiFlags : uint8_t {
 
 enum class CmdCode : uint8_t {
   NOP              =   0,
-  GET_NAME         =   1,
-  SET_NAME         =   2,
+  NAME             =   1,
   GET_FLAGS        =   3,
   RESET_SETTINGS   =   4,
   SAVE_SETTINGS    =   5,
   ERASE_SETTINGS   =   6,
   RESET_ESP        =   7,
 
-  GET_SCALE_OFFSET =  10,
-  SET_SCALE_OFFSET =  11,
-  GET_SCALE_FACTOR =  12,
-  SET_SCALE_FACTOR =  13,
-
-  GET_SSID         =  20,
-  SET_SSID         =  21,
-  CLEAR_SSID       =  22,
-  GET_PASSWORD     =  23,
-  SET_PASSWORD     =  24,
-  CLEAR_PASSWORD   =  25,
+  SCALE_OFFSET     =  10,
+  SCALE_FACTOR     =  12,
+  
+  SSID             =  20,
+  PASSWORD         =  23,
   SET_WIFI_ACTIVE  =  26,
   GET_WIFI_FLAGS   =  27,
 
-  GET_MQTT_HOST    =  30,
-  SET_MQTT_HOST    =  31,
-  GET_MQTT_PORT    =  32,
-  SET_MQTT_PORT    =  33,
-  GET_MQTT_LOGIN   =  34,
-  SET_MQTT_LOGIN   =  35,
-  GET_MQTT_PASSWORD = 36,
-  SET_MQTT_PASSWORD = 37,
+  MQTT_HOST        =  30,
+  MQTT_PORT        =  32,
+  MQTT_LOGIN       =  34,
+  MQTT_PASSWORD    =  36,
   
-  SET_MQTT_ACTIVE  =  38,
-  GET_MQTT_FLAGS   =  39,
+  MQTT_ACTIVE      =  38, // NOT IMPLEMENTED
+  GET_MQTT_FLAGS   =  39, // NOT IMPLEMENTED
 
   GET_TEMPERATURE  =  40,
   
   GET_MAC_ADDRESS  =  80,
   GET_VERSION      =  81,
-  SET_IDLE_TIME    =  82,
-  GET_IDLE_TIME    =  83, 
+  IDLE_TIME        =  82,
   SET_DEEP_SLEEP   =  84, // Activating or deactivating deep sleep mode
 
   TARE             = 200,
@@ -87,6 +75,7 @@ enum class StatusCode : uint8_t {
   BAD_REQUEST      =  2,
   NOT_FOUND        =  3,
   ILLEGAL_STATE    =  4,
+  BAD_METHOD       =  5,
 };
 
 enum class RequestMethod : uint8_t {

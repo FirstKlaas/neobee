@@ -51,6 +51,10 @@ typedef struct {
     memcpy(host_name, src, sizeof(host_name));
   };
 
+  void clearHostname() {
+    memset(host_name, 0, sizeof(host_name));
+  };
+
   void setPort(uint16_t new_port) {
     port = new_port;
   };

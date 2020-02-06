@@ -40,6 +40,15 @@ class NeoBeeCmd
         void sendResponse(WiFiClient& client, bool flush = true);
         void handleCommand(WiFiClient& client);
         
+        inline RequestMethod getMethod() {
+            return static_cast<RequestMethod>(m_buffer[1] & REQUEST_METHOD_MASK);
+        }
+
+        inline void setMethod(RequestMethod method) {
+            m_buffer[1] &= ~REQUEST_METHOD_MASK;
+            m_buffer[1] |= static_cast<uint8_t>(method); 
+        }
+
         inline void setStatus(StatusCode status) {
             m_buffer[1] = static_cast<uint8_t>(status);
         };

@@ -90,7 +90,7 @@ double NeoBeeScale::getOffset() {
 
 void NeoBeeScale::setOffset(const double offset) {
   m_ctx.scale.offset = offset;
-  bitSet(m_ctx.flags, FLAG_OFFSET_SET);
+  bitWrite(m_ctx.flags, FLAG_OFFSET_SET, (m_ctx.scale.offset > 0.));
 }
 
 float NeoBeeScale::getFactor() {
