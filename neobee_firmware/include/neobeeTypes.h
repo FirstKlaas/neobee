@@ -89,6 +89,15 @@ enum class StatusCode : uint8_t {
   ILLEGAL_STATE    =  4,
 };
 
+enum class RequestMethod : uint8_t {
+  NONE             =  0,
+  GET              =  1,
+  PUT              =  2,
+  DELETE           =  3
+};
+
+#define REQUEST_METHOD_MASK 3
+
 typedef struct {
   double offset;                    // The offset as a result of taring the load cell
   float factor;                     // Factor to be used to convert readings into units
