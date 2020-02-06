@@ -131,7 +131,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::OK);
                     if (m_ctx.scale.hasFactor()) {
-                        writeInt32((int)(m_ctx.scale.factor * 100.0 + 0.5), m_data_space);
+                        writeInt32((int)(m_ctx.scale.getFactor() * 100.0 + 0.5), m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
                     };

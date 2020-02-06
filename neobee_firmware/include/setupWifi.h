@@ -7,6 +7,6 @@
 #include "neobeeThings.h"
 
 
-WiFiMode setupWifi(Context& ctx, NeoBeeLED& statusLed);
+WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed);
 
 #endif

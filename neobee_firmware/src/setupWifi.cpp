@@ -4,7 +4,7 @@
 #define AP_SSID "NeoBee"
 
 
-WiFiMode setupWifi(Context& ctx, NeoBeeLED& statusLed) {
+WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
     WiFi.disconnect();
     WiFi.setAutoConnect(false);
     WiFi.setAutoReconnect(false);
@@ -31,7 +31,11 @@ WiFiMode setupWifi(Context& ctx, NeoBeeLED& statusLed) {
         #ifdef DEBUG
         Serial.print(".");
         #endif
-        delay(500);
+        if (mode == OperationMode::CMD_MODE) {
+            statusLed.pulse(250,1,250);
+        } else {
+            delay(500);
+        };
         number_of_tries++;
         };
 

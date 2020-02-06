@@ -20,14 +20,14 @@ with NeoBeeShell(host="192.168.178.72") as shell:
     #shell.mqtt_host = "192.168.178.77"
     #shell.mqtt_port = 1883
     
-    shell.mqtt_password = "encowa"
-    shell.mqtt_login = "encoway"
-    shell.mqtt_host = "vm-web.lenze.digital"
-    shell.mqtt_port = 1883
+    #shell.mqtt_password = "encowa"
+    #shell.mqtt_login = "encoway"
+    #shell.mqtt_host = "vm-web.lenze.digital"
+    #shell.mqtt_port = 1883
     
     
-    with open("board.neobee", "w") as f:
-        json.dump(shell.to_dict(), f, indent=2)
+    #with open("board.neobee", "w") as f:
+    #    json.dump(shell.to_dict(), f, indent=2)
     
-    shell.save_settings()
+    #shell.save_settings()
     print(json.dumps(shell.to_dict(), indent=2))

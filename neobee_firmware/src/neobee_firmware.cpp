@@ -44,21 +44,18 @@ WiFiMode wifiMode;
 #define EEPROM_SIZE 4096
 #define LED_PIN     D8
 
-unsigned long sketch_start_time;
-
 void setup() {
-    sketch_start_time = millis();
 
     // Start optimistic ;)
     mode = OperationMode::IOT_MODE;
 
     #ifdef DEBUG
     Serial.begin(SERIAL_SPEED);
-    delay(1000);
+    //delay(1000);
     while(!Serial) {
         // Wait for serial connection
     };
-    delay(500);
+    delay(50);
     Serial.println("#############################################");
     Serial.println("# NeoBee - Hive Data Logger                 #");
     Serial.println("#############################################");
@@ -95,7 +92,7 @@ void setup() {
     scale.begin();
   
     // Now setup the wifi network
-    wifiMode = setupWifi(ctx, statusLed);
+    wifiMode = setupWifi(ctx, mode, statusLed);
 
     if (wifiMode == WiFiMode::WIFI_AP) {
         // When in AP mode, sending sensor data
