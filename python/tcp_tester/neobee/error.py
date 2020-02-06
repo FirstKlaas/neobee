@@ -14,6 +14,10 @@ class BadRequestError(NeoBeeError):
     pass
 
 
+class BadMethodError(NeoBeeError):
+    pass
+
+
 class WrongResponseCommandError(NeoBeeError):
     pass
 

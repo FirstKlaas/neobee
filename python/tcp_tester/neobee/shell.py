@@ -9,6 +9,7 @@ from .error import (
     NotConnectedError,
     NetworkError,
     WrongResponseCommandError,
+    BadMethodError,
 )
 
 from .util import HighByte, LowByte
@@ -53,6 +54,7 @@ class StatusCode(IntEnum):
     BAD_REQUEST = 2
     NOT_FOUND = 3
     ILLEGAL_STATE = 4
+    BAD_METHOD = 5
 
 
 class RequestMethod(IntEnum):
@@ -138,6 +140,9 @@ class NeoBeeShell:
 
         if self.status == StatusCode.BAD_REQUEST:
             raise BadRequestError()
+    
+        if self.status == StatusCode.BAD_METHOD:
+            raise BadMethodError()
 
     def _print_buffer(self):
         print(":".join("{:02x}".format(x) for x in self._buffer))
@@ -163,7 +168,7 @@ class NeoBeeShell:
 
     @method.setter
     def method(self, val: RequestMethod):
-        self._buffer[1] = (self._buffer[1] & (~3)) | val  
+        self._buffer[1] = (self._buffer[1] & (~3)) | val
 
     @property
     def command(self):
@@ -368,7 +373,6 @@ class NeoBeeShell:
             self.method = RequestMethod.PUT
             self._string_to_buffer(password)
             self._send()
-
 
     @property
     def deep_sleep_seconds(self):
