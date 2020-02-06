@@ -7,18 +7,13 @@
 #include "neobeeUtil.h"
 
 enum class MqttFlags : uint8_t {
-  FLAG_SSID_SET     = 0,
-  FLAG_PASSWORD_SET = 1,
-  FLAG_AUTH         = 2,
-  FLAG_HOST_SET     = 3,
-  FLAG_PORT_SET     = 4
 };
 
 // Data strucure to store relevant information
 // between two deep sleep cycles
 //
 typedef struct {
-  uint8_t flags;                    // Mqtt Flags
+  uint8_t flags;                    // Mqtt Flags (currently unused)
   char host_name[30];               // hostname or ip of the mqtt server
   uint16_t port;                    // mqtt port
   char login[30];                   // login (optional)
@@ -59,8 +54,20 @@ typedef struct {
     port = new_port;
   };
 
+  void clearPort() {
+    setPort(0);
+  }
+
+  void clearLogin() {
+    memset(login, 0, sizeof(login));
+  };
+
   void setLogin(const uint8_t* src) {
     memcpy(login, src, sizeof(login));
+  };
+
+  void clearPassword() {
+    memset(password, 0, sizeof(password));
   };
 
   void setPassword(const uint8_t* src) {
