@@ -64,7 +64,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::NAME, StatusCode::OK);
                     if (m_ctx.hasName()) {
-                        memcpy(m_data_space, m_ctx.name, sizeof(m_ctx.name));
+                        m_ctx.copyNameTo(m_data_space);
                         setStatus(StatusCode::OK);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);

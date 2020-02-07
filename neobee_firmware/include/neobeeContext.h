@@ -96,17 +96,23 @@ typedef struct context {
   MqttServer mqttServer;
   WifiNetwork wifi_network;  
 
-  inline bool hasName() const { return name[0] != 0; };
   inline bool isDeepSleepEnabled() const { return (deep_sleep_seconds > 0); };
   inline uint16_t getDeepSleepSeconds() { return deep_sleep_seconds > 0 ? deep_sleep_seconds : 30; };
   inline void setDeepSleepSeconds(uint8_t highbyte, uint8_t lowbyte) {
     deep_sleep_seconds = ((highbyte << 8) | lowbyte);  
   }  
   
+  inline bool hasName() const { return name[0] != 0; };
+  
   inline void setName(const uint8_t* new_name)
-  {
-    memcpy(name, new_name, sizeof(name));
+  { 
+    memcpy(name, new_name, sizeof(name)); 
   }
+
+  void copyNameTo(uint8_t* dest) {
+    memcpy(dest, name, sizeof(name));
+  }
+
 } Context;
 
 const uint8_t ContextSize = sizeof(Context);
