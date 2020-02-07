@@ -46,8 +46,7 @@ void NeoBeeCmd::sendResponse(WiFiClient& client, bool flush) {
 
 void NeoBeeCmd::handleCommand(WiFiClient& client) {
     if (!m_started) return;
-    //printByteArray(m_buffer);
-
+    
     CmdCode cmd = getCommand();
     RequestMethod method = getMethod();
 
@@ -130,7 +129,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::OK);
                     if (m_ctx.scale.hasFactor()) {
-                        writeFloat100(m_ctx.scale.getFactor, m_data_space);
+                        writeFloat100(m_ctx.scale.getFactor(), m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
                     };
@@ -213,7 +212,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             clearBuffer(CmdCode::GET_VERSION, StatusCode::OK);
             m_data_space[0] = 0;
             m_data_space[1] = 1;
-            m_data_space[2] = 0;
+            m_data_space[2] = 1;
             break;
 
         case CmdCode::IDLE_TIME:
@@ -246,16 +245,18 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 0 : Number of times to measure to build an average weight.
              * 1 : Mesure Method
              */
-            float weight;
-            uint8_t ntimes(m_data_space[0]);
-            WeightMethod weight_method(static_cast<WeightMethod>(m_data_space[1])); 
+            {
+                float weight;
+                uint8_t ntimes(m_data_space[0]);
+                WeightMethod weight_method(static_cast<WeightMethod>(m_data_space[1])); 
 
-            if (ntimes == 0) {
-                clearBuffer(CmdCode::GET_WEIGHT, StatusCode::BAD_REQUEST);
-            } else {
-                clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
-                weight = m_scale.getWeight(ntimes, weight_method);
-                writeFloat100(weight, m_data_space);            
+                if (ntimes == 0) {
+                    clearBuffer(CmdCode::GET_WEIGHT, StatusCode::BAD_REQUEST);
+                } else {
+                    clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
+                    weight = m_scale.getWeight(ntimes, weight_method);
+                    writeFloat100(weight, m_data_space);            
+                };
             };
             break;
 
@@ -442,7 +443,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 Serial.print("Temperature: ");
                 Serial.println(c);
                 #endif
-                writeInt32(F100(c), m_data_space);
+                writeFloat100(c, m_data_space);
             }
             break;
 
