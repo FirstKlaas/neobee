@@ -31,10 +31,24 @@ bool NeoBeeScale::begin() {
   return true;
 }
 
-float NeoBeeScale::getWeight(uint8_t ntimes) {
-  begin();
-  //return std::max(_scale.get_units(ntimes), 0.f);
-  return std::max((readMedAvg() - getOffset()) / getFactor(), 0.);
+float NeoBeeScale::getWeight(uint8_t ntimes, WeightMethod method) {
+    begin();
+    switch (method) {
+        case WeightMethod::Median:
+            return std::max((readMedian() - getOffset()) / getFactor(), 0.);
+
+        case WeightMethod::MedianAverage:
+            return std::max((readMedAvg() - getOffset()) / getFactor(), 0.);
+
+        case WeightMethod::Precise:
+            return std::max((readPrecise(ntimes) - getOffset()) / getFactor(), 0.);
+
+        case WeightMethod::Units:
+            return std::max(_scale.get_units(ntimes), 0.f);
+
+        default:
+            return std::max((readMedAvg() - getOffset()) / getFactor(), 0.);
+    }
 }
 
 long NeoBeeScale::getRaw(uint8_t ntimes) {

@@ -4,6 +4,14 @@
 #include "neobeeTypes.h"
 #include "neobeeContext.h"
 
+enum class WeightMethod : uint8_t {
+  MedianAverage = 0,
+  Median        = 1,
+  Units         = 2,
+  Precise       = 3,
+  None          = 255 // This is only to make shure, the static cast is within range.
+};
+
 class NeoBeeScale
 {
   public:
@@ -13,7 +21,7 @@ class NeoBeeScale
 
     bool begin();
     bool calibrate(uint16_t reference_weight, uint8_t ntimes = 10);
-    float getWeight(uint8_t ntimes = 20);
+    float getWeight(uint8_t ntimes = 20, WeightMethod method = WeightMethod::MedianAverage);
 
     double getOffset();
     void setOffset(const double offset);

@@ -245,16 +245,17 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * Data bytes
              * ---------------------------------------------------------------
              * 0 : Number of times to measure to build an average weight.
+             * 1 : Mesure Method
              */
-            uint8_t ntimes;
             float weight;
+            uint8_t ntimes(m_data_space[0]);
+            WeightMethod weight_method(static_cast<WeightMethod>(m_data_space[1])); 
 
-            ntimes = m_data_space[0];
             if (ntimes == 0) {
                 clearBuffer(CmdCode::GET_WEIGHT, StatusCode::BAD_REQUEST);
             } else {
                 clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
-                weight = m_scale.getWeight(ntimes);
+                weight = m_scale.getWeight(ntimes, weight_method);
                 writeInt32(int(weight * 100.0 + 0.5), m_data_space);            
             };
             break;
