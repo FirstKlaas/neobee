@@ -169,11 +169,11 @@ void NeoBeeMqtt::publishData(float weight, float tempInside, float tempOutside) 
 
     WiFi.macAddress(bufferPtr);
     bufferPtr += 6;
-    writeInt32(int(weight * 100.f + 0.5f), bufferPtr);
+    writeFloat100(weight, bufferPtr);
     bufferPtr += 4;
-    writeInt32(int(tempInside * 100.f + 0.5f), bufferPtr);
+    writeFloat100(tempInside, bufferPtr);
     bufferPtr += 4;
-    writeInt32(int(tempOutside * 100.f + 0.5f), bufferPtr);
+    writeFloat100(tempOutside, bufferPtr);
     bufferPtr += 4;
     client.publish("/neobee/hive/rawdata", getBuffer(), 18);
     memset(getBuffer(),0,18);

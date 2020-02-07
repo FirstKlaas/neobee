@@ -7,7 +7,6 @@ const char *ssid = "NeoBee";
 const char *password = "sumsum";
 
 #define HEADSIZE 2
-#define F100(x)  (int(x * 100.0 + 0.5))
 
 NeoBeeCmd::NeoBeeCmd(
     Context& ctx, 
@@ -88,7 +87,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
                     if (m_scale.hasOffset()) {
-                        writeInt32(int(m_scale.getOffset() * 100.0 + 0.5), m_data_space);
+                        writeDouble100(m_scale.getOffset(), m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
                     }
@@ -131,7 +130,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::OK);
                     if (m_ctx.scale.hasFactor()) {
-                        writeInt32((int)(m_ctx.scale.getFactor() * 100.0 + 0.5), m_data_space);
+                        writeFloat100(m_ctx.scale.getFactor, m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
                     };
@@ -164,8 +163,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 m_scale.tare(m_data_space[0]);
                 
                 clearBuffer(CmdCode::TARE, StatusCode::OK);
-                writeInt32(int(m_scale.getOffset() * 100 + 0.5), m_data_space);
-                writeInt32(int(m_scale.getFactor() * 100 + 0.5), m_data_space+4);
+                writeDouble100(m_scale.getOffset(), m_data_space);
+                writeFloat100(m_scale.getFactor(), m_data_space+4);
             };            
             break;
 
@@ -192,8 +191,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
                     m_scale.begin();
                     m_scale.calibrate(ref_weight, m_data_space[2]);
-                    writeInt32(int(m_ctx.scale.offset * 100 + 0.5), m_data_space);
-                    writeInt32(int(m_ctx.scale.factor * 100 + 0.5), m_data_space + 4);
+                    writeDouble100(m_ctx.scale.offset, m_data_space);
+                    writeFloat100(m_ctx.scale.factor, m_data_space + 4);
                 };
             };
             break;
@@ -256,7 +255,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             } else {
                 clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
                 weight = m_scale.getWeight(ntimes, weight_method);
-                writeInt32(int(weight * 100.0 + 0.5), m_data_space);            
+                writeFloat100(weight, m_data_space);            
             };
             break;
 
