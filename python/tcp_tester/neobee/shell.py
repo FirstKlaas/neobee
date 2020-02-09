@@ -10,10 +10,12 @@ from .error import (
     NetworkError,
     WrongResponseCommandError,
     BadMethodError,
+    DataError,
 )
 
 from .util import HighByte, LowByte
 from .net import MacAddress
+from .error import NeoBeeError
 
 __ALL__ = ["NeoBeeShell"]
 
@@ -73,7 +75,11 @@ class NeoBeeShell:
         self._connected = False
 
     def __enter__(self):
-        self._socket.connect((self.host, self.port))
+        try:
+            self._socket.connect((self.host, self.port))
+        except OSError:
+            raise NeoBeeError("Could not connect to hive")
+
         self._connected = True
         return self
 
@@ -101,9 +107,7 @@ class NeoBeeShell:
         self._buffer[:] = [0] * 32
 
     def _buffer_to_string(self):
-        return bytearray(
-            filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])
-        ).decode("ascii")
+        return bytearray(filter(lambda x: x >= 32 and x <= 127, self._buffer[2:])).decode("ascii")
 
     def _string_to_buffer(self, val: str):
         if not val:
@@ -140,7 +144,7 @@ class NeoBeeShell:
 
         if self.status == StatusCode.BAD_REQUEST:
             raise BadRequestError()
-    
+
         if self.status == StatusCode.BAD_METHOD:
             raise BadMethodError()
 
@@ -269,9 +273,7 @@ class NeoBeeShell:
         self.command = CmdCode.NAME
         self._send()
         if self.status == StatusCode.OK:
-            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode(
-                "ascii"
-            )
+            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode("ascii")
         else:
             return None
 
@@ -284,12 +286,12 @@ class NeoBeeShell:
         self.method = RequestMethod.PUT
         self.command = CmdCode.NAME
         if not name:
-            raise ValueError("No name provided")
+            self.method = RequestMethod.DELETE
+        else:
+            if len(name) > 20:
+                raise DataError("Name to long. Max length is 20")
+            self._string_to_buffer(name)
 
-        if len(name) > 20:
-            raise ValueError("Name to long. Max length is 20")
-
-        self._string_to_buffer(name)
         self._send()
 
     def save_settings(self):

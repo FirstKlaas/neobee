@@ -1,17 +1,32 @@
 Commands
 ========
 
-The NeoBee board defines its own communication protocol based on tcp/ip.
-The board acts as a server. It supports all commands needed to configure
-the board as well as read the sensore data.
+The NeoBee board defines its own tcp based communication protocol
+based on tcp/ip. The board acts as a server. It supports all
+commands needed to configure the board as well as read the sensore
+data.
 
 Paket structure
 ---------------
 
-All pakets have a fixed sizeof 32 bytes. The first byte of a request packet
-contains the commande code. The second byte contains command flags. For
+All pakets have a fixed size of 32 bytes. The first byte of a request packet
+contains the commande code. The second byte defines the method. For
 details read the related command documentation. The rest of the bytes contain
 the data.
+
+Request Method
+--------------
+
+The two least bits of the second byte define the request method. Following
+methods are possible.
+
+=== ======= ===============================================================
+0   NONE    Method not used.
+1   GET     The method to read values
+2   PUT     Method used to write/change values
+3   DELETE  Method used to delete/reset values
+=== ======= ===============================================================
+
 
 [01] Get Name
 -------------
@@ -29,19 +44,34 @@ Byte  Description
 02-29 0 [*unused*]
 ===== ================================
 
-[02] Set Name
--------------
+[01] Name
+---------
 
-Setting the human readable name of the board. THe maximum langth of
-th name is 30 bytes. All unused bytes in the request paket must be
-set to 0.
+Managing the human readable name of the board. Supported methods are
+``GET``, ``PUT``, ``DELETE``. The maximum length of the name is 30
+bytes. Because there is no way to define the encoding, the bytes are
+copied directly. An ASCII encoding is highly emphasized.
+
+Request
+~~~~~~~
 
 ===== ================================
 Byte  Description
 ===== ================================
 00    Command byte. Always 2
-01    Status byte.
-02-29 Name (Unused bytes are zeroed)
+01    Method (GET / PUT / DELETE)
+02-29 Name in case of method ``PUT``. Zeroed for the other methods.
+===== ================================
+
+Response
+~~~~~~~~
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 2
+01    Response Status
+02-29 Name in case of method ``GET``. Zeroed for the other methods.
 ===== ================================
 
 [03] Get Flags

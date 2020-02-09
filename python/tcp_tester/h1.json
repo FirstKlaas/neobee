@@ -1,0 +1,14 @@
+{
+  "firmware_version": "0.1.1",
+  "device_name": null,
+  "mac_address": "84:f3:eb:90:6d:c2",
+  "ssid": "RepeaterOben24",
+  "password": "4249789363748310",
+  "deep_sleep_seconds": 30,
+  "scale_offset": null,
+  "scale_factor": null,
+  "mqtt_host": "vm-web.lenze.digital",
+  "mqtt_port": 1883,
+  "mqtt_login": "encoway",
+  "mqtt_password": "encowa"
+}

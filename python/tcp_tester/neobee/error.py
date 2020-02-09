@@ -6,6 +6,10 @@ class NotConnectedError(NeoBeeError):
     pass
 
 
+class DataError(NeoBeeError):
+    pass
+
+
 class AlreadyConnectedError(NeoBeeError):
     pass
 

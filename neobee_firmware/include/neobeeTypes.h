@@ -98,6 +98,12 @@ typedef struct {
   inline void setFactor(float new_factor) { factor = std::max(new_factor, 0.f);  };
   inline void setGain(uint8_t new_gain) { gain = new_gain; };
 
+  inline void reset() { 
+    offset = 0;
+    factor = 0;
+    gain = 128;
+  };
+  
 } Scale;
 
 typedef struct {

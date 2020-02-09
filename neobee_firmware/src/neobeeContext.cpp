@@ -1,5 +1,5 @@
 #include "neobeeContext.h"
-
+  
 void saveContext(Context* ctx) {
     #ifdef DEBUG
     Serial.print("Saving Context");
@@ -17,9 +17,9 @@ void saveContext(Context* ctx) {
 void resetContext(Context* ctx) {
     memcpy(ctx->magic_bytes, "NEOBEE", 6);
     memset(ctx->name,0,sizeof(ctx->name));
-    ctx->scale.offset = 0.f;
-    ctx->scale.factor = 1.f;
-    ctx->scale.gain = 128;
+    ctx->wifi_network.reset();
+    ctx->scale.reset();
+    ctx->mqttServer.reset();
 };
 
 bool loadContext(Context* ctx) {
@@ -41,8 +41,8 @@ bool loadContext(Context* ctx) {
      */ 
     #ifdef DEBUG
     Serial.println("Seems to be new device. No context.");
-    resetContext(ctx);
     #endif
+    resetContext(ctx);
     return false;
   }
 }
@@ -51,6 +51,7 @@ void eraseContext(Context* ctx) {
     #ifdef DEBUG
     Serial.println("Deleting context");
     #endif
+    resetContext(ctx);
     memset(ctx->magic_bytes, 0, 7);
     saveContext(ctx);  
 }

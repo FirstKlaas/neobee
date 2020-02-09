@@ -82,6 +82,13 @@ typedef struct {
   void copyPasswordTo(uint8_t* dest) {
     memcpy(dest, password, sizeof(password));
   }
+
+  void reset() {
+    clearHostname();
+    clearPort();
+    clearLogin();
+    clearPassword();
+  }
   
 } MqttServer;
 

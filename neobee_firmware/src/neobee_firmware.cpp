@@ -100,9 +100,18 @@ void setup() {
         // Command mode is the only possible
         // mode.
         #ifdef DEBUG
-        Serial.println("We wifi is in AP mode. So switching to CMD mode.");
+        Serial.println("In AP mode no mqtt messages are broadcasted.");
+        Serial.print("Local IP is: ");
+        Serial.println(WiFi.softAPIP());
         #endif
-        mode = OperationMode::CMD_MODE;
+
+        if (mode != OperationMode::CMD_MODE) {
+            #ifdef DEBUG
+            Serial.println("Wifi is in AP mode. So switching to CMD mode.");
+            #endif
+            mode = OperationMode::CMD_MODE;
+        };
+
     } else {
         // We are in station mode, so it does make sense,
         // to connect to the mqtt server (if configured)
@@ -144,8 +153,8 @@ void loop() {
 
     // If we are in command mode check for 
     // new commands.
-    if (WiFi.isConnected() && mode == OperationMode::CMD_MODE) { 
-        cmd.checkForCommands();
+    if (mode == OperationMode::CMD_MODE) {
+        Serial.println("Checking for commands"); 
     }
 
     // When in AP Mode, mqtt doesn't make any sense.
