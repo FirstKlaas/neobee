@@ -154,7 +154,7 @@ void loop() {
     // If we are in command mode check for 
     // new commands.
     if (mode == OperationMode::CMD_MODE) {
-        Serial.println("Checking for commands"); 
+        cmd.checkForCommands();
     }
 
     // When in AP Mode, mqtt doesn't make any sense.

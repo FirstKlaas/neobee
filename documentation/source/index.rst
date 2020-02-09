@@ -11,6 +11,7 @@ Welcome to NeoBee's documentation!
    :caption: Contents:
 
    circuit
+   getting_started
    python_environment
    entering_command_mode
    calibration
