@@ -117,7 +117,9 @@ Leave the ``firmware_version`` and the ``mac_adress`` entry
 as they are and adopt all other setting to your needs. Most
 probably, you will not knoe the correct values for the
 ``scale_factor`` and the ``scale_offset``. We will determine
-these values in the *Taring ang Calibration* tutorial.
+these values in the in the
+:ref:`taring and calibrating the scale <taring-and-calibrating>`
+tutorial.
 
 After saving out your changes, you can know easily configure
 your board using the configuration file.

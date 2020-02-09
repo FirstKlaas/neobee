@@ -14,8 +14,13 @@ def command_line():
     parser.add_argument("-s", "--save", help="Save configuration data", action="store_true")
 
     parser.add_argument("-n", "--name", help="The name of the neobee board", type=str)
-
-    parser.add_argument("--ssid", help="THe wifi network to connec to", type=str)
+    parser.add_argument("--version", help="Print the firmware version.", action="store_true")
+    parser.add_argument("-t", "--tare", help="Start taring the scale.", action="store_true")
+    parser.add_argument("-c", "--calibrate", help="Start calibrating the scale.", type=int)
+    
+    parser.add_argument("--count", help="Number of iterations", nargs='?', type=int, const=1, default=1)
+    
+    parser.add_argument("--ssid", help="The wifi network to connec to", type=str)
     parser.add_argument("--password", help="The wifi password", type=str)
 
     parser.add_argument("--mqtt-host", help="The mqtt host", type=str)
@@ -30,6 +35,7 @@ def command_line():
     parser.add_argument("-i", "--in-file", help="Reading the settings from", type=str)
 
     args = parser.parse_args()
+    print(args)
     host = "192.168.4.1"
 
     if args.host != "default":
@@ -41,9 +47,30 @@ def command_line():
     try:
         with NeoBeeShell(host=host) as shell:
 
+            if args.version:
+                print(".".join(format(x) for x in shell.get_version()))
+
+            if args.tare:
+                print(shell.tare(args.count)[0])
+
+            if args.calibrate:
+                print(shell.calibrate(args.calibrate, args.count)[1])
+
+
             if args.in_file:
                 with open(args.in_file, "r") as f:
                     data = json.load(f)
+
+                    # First check, if te version in the
+                    # config file matches the version
+                    # of the firmware.
+                    if "version" in data:
+                        version_string = ".".join(format(x) for x in shell.get_version())
+                        if version_string != data.get("version"):
+                            raise NeoBeeError(f"Version mismatch. {version_string} vs. {data.get('version')}")
+                    else:
+                        raise NeoBeeError("No version attribute in configfile.")
+
                     if "device_name" in data:
                         shell.name = data["device_name"]
                     if "ssid" in data:
@@ -125,32 +152,5 @@ def command_line():
         print(e)
 
 
-"""
-    with NeoBeeShell(host="192.168.178.72") as shell:
-        #with NeoBeeShell() as shell:
-
-        shell.name = "NeoBee.One"
-        shell.ssid = "RepeaterOben24"
-        shell.set_password("4249789363748310")
-        shell.deep_sleep_seconds = 30
-        shell.set_scale_offset(61191.0)
-        shell.set_scale_factor(21.88)
-        shell.activate_wifi_sta()
-        
-        #shell.mqtt_password = None
-        #shell.mqtt_login = None
-        #shell.mqtt_host = "192.168.178.77"
-        #shell.mqtt_port = 1883
-        
-        #shell.mqtt_password = "encowa"
-        #shell.mqtt_login = "encoway"
-        #shell.mqtt_host = "vm-web.lenze.digital"
-        #shell.mqtt_port = 1883
-        
-        
-        #with open("board.neobee", "w") as f:
-        #    json.dump(shell.to_dict(), f, indent=2)
-        
-        #shell.save_settings()
-        #print(json.dumps(shell.to_dict(), indent=2))
-"""
+if __name__ == "__main__":
+    command_line()

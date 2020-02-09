@@ -1,5 +1,7 @@
-Calibrating the Scale
-=====================
+.. _taring-and-calibrating:
+
+Taring and Calibrating the Scale
+================================
 
 The load cell is connected via a HX711 analog-to-digital
 converter. It converts the weigth to an 24 bit value.
@@ -18,6 +20,6 @@ on :ref:`setting-up-the-python-library`.
 To tare the weight, follow the steps:
 
 1. Connect the board via USB to your computer.
-2. Boot the board into command mode.
+2. Boot the board into :ref:`command mode <entering-command-mode>`.
 3. Press and hold the ``CMB`` Button
 4. *Now the python part*

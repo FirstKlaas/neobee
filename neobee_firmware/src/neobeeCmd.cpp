@@ -190,8 +190,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
                     m_scale.begin();
                     m_scale.calibrate(ref_weight, m_data_space[2]);
-                    writeDouble100(m_ctx.scale.offset, m_data_space);
-                    writeFloat100(m_ctx.scale.factor, m_data_space + 4);
+                    writeDouble100(m_ctx.scale.getOffset(), m_data_space);
+                    writeFloat100(m_ctx.scale.getFactor(), m_data_space + 4);
                 };
             };
             break;
