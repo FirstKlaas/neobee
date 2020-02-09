@@ -7,4 +7,7 @@
 **/_build/
 **/_static/
 **/*.code-workspace
+**/*.egg-info/
 
+
+neobee_workspace.code-workspace

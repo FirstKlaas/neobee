@@ -1,4 +1,4 @@
-CHECKFILES = neobee/
+CHECKFILES = neobee
 
 help:
 	@echo  "NeoBee platform development makefile"
@@ -38,7 +38,6 @@ style:
 
 build: ci
 	rm -fR dist/
-	#python setup_client.py sdist bdist_wheel
 	python setup.py sdist bdist_wheel
 
 publish: build

@@ -11,7 +11,7 @@ bandit==1.6.2
 black==19.10b0 ; python_version >= "3.6"
 bleach==3.1.0             # via readme-renderer
 certifi==2019.11.28       # via requests
-cffi==1.13.2              # via cryptography
+cffi==1.14.0              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via black, pip-tools
 colorama==0.4.3           # via green
@@ -25,7 +25,7 @@ filelock==3.0.12          # via tox
 flake8-isort==2.8.0
 flake8==3.7.9             # via flake8-isort
 gitdb2==2.0.6             # via gitpython
-gitpython==3.0.5          # via bandit
+gitpython==3.0.7          # via bandit
 green==3.1.0
 idna==2.8                 # via requests
 importlib-metadata==1.5.0  # via keyring, pluggy, pytest, tox, twine
@@ -63,7 +63,7 @@ secretstorage==3.1.2      # via keyring
 six==1.14.0               # via astroid, bandit, bleach, cryptography, nose2, packaging, pip-tools, readme-renderer, stevedore, tox
 smmap2==2.0.5             # via gitdb2
 stevedore==1.31.0         # via bandit
-testfixtures==6.11.0      # via flake8-isort
+testfixtures==6.12.0      # via flake8-isort
 toml==0.10.0              # via black, isort, tox
 tox==3.14.3
 tqdm==4.42.1              # via twine
@@ -76,7 +76,7 @@ virtualenv==16.7.9        # via tox
 wcwidth==0.1.8            # via pytest
 webencodings==0.5.1       # via bleach
 wrapt==1.11.2             # via astroid
-zipp==2.1.0               # via importlib-metadata
+zipp==2.2.0               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

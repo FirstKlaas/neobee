@@ -1,11 +1,11 @@
 import argparse
 import json
 
-from neobee.shell import NeoBeeShell
-from neobee.error import NeoBeeError
+from .shell import NeoBeeShell
+from .error import NeoBeeError
 
-if __name__ == "__main__":
 
+def command_line():
     parser = argparse.ArgumentParser()
     parser.add_argument("host", help="The NeoBee host, to connect to.", type=str)
     parser.add_argument("-v", "--verbose", help="Show some more output.", action="store_true")
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--save", help="Save configuration data", action="store_true")
 
     parser.add_argument("-n", "--name", help="The name of the neobee board", type=str)
-    
+
     parser.add_argument("--ssid", help="THe wifi network to connec to", type=str)
     parser.add_argument("--password", help="The wifi password", type=str)
 
@@ -22,13 +22,13 @@ if __name__ == "__main__":
     parser.add_argument("--mqtt-port", help="The mqtt port", type=int)
     parser.add_argument("--mqtt-login", help="The mqtt login", type=str)
     parser.add_argument("--mqtt-password", help="The mqtt password", type=str)
-    
+
     parser.add_argument("--scale-offset", help="The scale offset", type=int)
     parser.add_argument("--scale-factor", help="The scale factor", type=int)
-    
+
     parser.add_argument("-o", "--out-file", help="Writing the settings to", type=str)
     parser.add_argument("-i", "--in-file", help="Reading the settings from", type=str)
-    
+
     args = parser.parse_args()
     host = "192.168.4.1"
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     if args.verbose:
         print(f"Connecting to host {host}")
-    
+
     try:
         with NeoBeeShell(host=host) as shell:
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 with open(args.in_file, "r") as f:
                     data = json.load(f)
                     if "device_name" in data:
-                        shell.name = data['device_name']
+                        shell.name = data["device_name"]
                     if "ssid" in data:
                         shell.ssid = data["ssid"]
                     if "password" in data:
@@ -74,15 +74,18 @@ if __name__ == "__main__":
                 shell.name = args.name
 
             if args.erase:
-                if args.verbose: print("Erase settings.")
+                if args.verbose:
+                    print("Erase settings.")
                 shell.erase_settings()
 
             if args.ssid:
-                if args.verbose: print(f"Setting ssid to {args.ssid}.")
+                if args.verbose:
+                    print(f"Setting ssid to {args.ssid}.")
                 shell.ssid = args.ssid
 
             if args.password:
-                if args.verbose: print(f"Setting wifi password to {args.password}.")
+                if args.verbose:
+                    print(f"Setting wifi password to {args.password}.")
                 shell.wifi_password = args.password
 
             if args.mqtt_host:
@@ -104,7 +107,8 @@ if __name__ == "__main__":
                 shell.scale_offset = args.scale_offset
 
             if args.save:
-                if args.verbose: print("Save settings.")
+                if args.verbose:
+                    print("Save settings.")
 
                 shell.save_settings()
 
@@ -113,7 +117,8 @@ if __name__ == "__main__":
                     json.dump(shell.to_dict(), f, indent=2)
 
             if args.reset:
-                if args.verbose: print("Resetting board.")
+                if args.verbose:
+                    print("Resetting board.")
                 shell.reset()
 
     except NeoBeeError as e:
