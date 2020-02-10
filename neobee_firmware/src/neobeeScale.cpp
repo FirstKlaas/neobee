@@ -84,26 +84,43 @@ double NeoBeeScale::readPrecise(uint8_t ntimes) {
 }
 
 bool NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
-  if (ntimes == 0) return false;
-  _scale.set_scale(1.f);
-  double raw = ntimes > 1 ? readPrecise(ntimes) : _scale.read();
-  setFactor((raw - m_ctx.scale.offset) / reference_weight);
-  _scale.set_scale(getFactor());
+  if (ntimes == 0) {
+    #ifdef DEBUG
+    Serial.println("Number of measures is 0. Cannot calibrate.");
+    #endif
+    return false;
+  };
+  double raw = ntimes > 1 ? readPrecise(ntimes) : readMedian();
+  setFactor((raw - m_ctx.scale.getOffset()) / reference_weight);
+  #ifdef DEBUG
+  Serial.println("___CALIBRATE___");
+  Serial.print("Raw         : ");Serial.println(raw);
+  Serial.print("Ref. Weight : ");Serial.println(reference_weight);
+  Serial.print("Offset      : ");Serial.println(getOffset());
+  Serial.print("Factor      : ");Serial.println(getFactor());
+  #endif
   return true;
   
 }
 
 void NeoBeeScale::tare(uint8_t ntimes) {
-  setOffset(readPrecise(ntimes));
-  _scale.set_offset(getOffset());
+  double raw = ntimes > 1 ? readPrecise(ntimes) : readMedian();
+  #ifdef DEBUG
+  Serial.println("___TARE___");
+  Serial.print("Raw         : ");Serial.println(raw);
+  Serial.print("Offset      : ");Serial.println(getOffset());
+  Serial.print("Factor      : ");Serial.println(getFactor());
+  #endif
+  setOffset(raw);
 }
 
 double NeoBeeScale::getOffset() {
-  return m_ctx.scale.offset;
+  return m_ctx.scale.getOffset();
 }
 
 void NeoBeeScale::setOffset(const double offset) {
   m_ctx.scale.setOffset(offset);
+  _scale.set_offset(offset);
 }
 
 float NeoBeeScale::getFactor() {
@@ -112,6 +129,7 @@ float NeoBeeScale::getFactor() {
 
 void NeoBeeScale::setFactor(const float factor) {
   m_ctx.scale.setFactor(factor);
+  _scale.set_scale(factor);
 }
 
 uint8_t NeoBeeScale::getGain() {
@@ -120,4 +138,5 @@ uint8_t NeoBeeScale::getGain() {
 
 void NeoBeeScale::setGain(const uint8_t gain) {
   m_ctx.scale.setGain(gain);
+  _scale.set_gain(gain);
 }

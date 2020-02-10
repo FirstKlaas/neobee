@@ -208,6 +208,9 @@ class NeoBeeShell:
         if not self.connected:
             raise NotConnectedError()
 
+        if value <= 0:
+            raise BadRequestError("Offset must be a positive value.")
+
         self._clearbuffer()
         self.method = RequestMethod.PUT
         self.command = CmdCode.SCALE_OFFSET
@@ -238,6 +241,9 @@ class NeoBeeShell:
     def scale_factor(self, value: float):
         if not self.connected:
             raise NotConnectedError()
+
+        if value <= 0:
+            raise BadRequestError("Factor must be a positive value.")
 
         self._clearbuffer()
         self.method = RequestMethod.PUT
@@ -419,12 +425,14 @@ class NeoBeeShell:
         return (offset, factor)
 
     def calibrate(self, ref_weight: int, count: int):
+        print("Calibrating", count, "-times")
         self._clearbuffer()
-        self.method = RequestMethod.NONE
+        self.method = RequestMethod.GET
         self.command = CmdCode.CALIBRATE
         self[0] = (ref_weight >> 8) & 0xFF
         self[1] = ref_weight & 0xFF
         self[2] = count & 0xFF
+        self._print_buffer()
         self._send()
         offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
         factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100

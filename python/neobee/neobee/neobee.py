@@ -19,6 +19,7 @@ def command_line():
     parser.add_argument("-c", "--calibrate", help="Start calibrating the scale.", type=int)
     
     parser.add_argument("--count", help="Number of iterations", nargs='?', type=int, const=1, default=1)
+    parser.add_argument("--dump", help="Print current board configuration", action="store_true")
     
     parser.add_argument("--ssid", help="The wifi network to connec to", type=str)
     parser.add_argument("--password", help="The wifi password", type=str)
@@ -35,7 +36,7 @@ def command_line():
     parser.add_argument("-i", "--in-file", help="Reading the settings from", type=str)
 
     args = parser.parse_args()
-    print(args)
+    #print(args)
     host = "192.168.4.1"
 
     if args.host != "default":
@@ -142,6 +143,9 @@ def command_line():
             if args.out_file:
                 with open(args.out_file, "w") as f:
                     json.dump(shell.to_dict(), f, indent=2)
+
+            if args.dump:
+                print(json.dumps(shell.to_dict(), indent=2))
 
             if args.reset:
                 if args.verbose:
