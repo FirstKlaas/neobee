@@ -29,8 +29,10 @@ def command_line():
     parser.add_argument("--mqtt-login", help="The mqtt login", type=str)
     parser.add_argument("--mqtt-password", help="The mqtt password", type=str)
 
-    parser.add_argument("--scale-offset", help="The scale offset", type=int)
-    parser.add_argument("--scale-factor", help="The scale factor", type=int)
+    parser.add_argument("--scale-offset", help="The scale offset", type=float)
+    parser.add_argument("--scale-factor", help="The scale factor", type=float)
+
+    parser.add_argument("--weight", help="The current weight", action="store_true")
 
     parser.add_argument("-o", "--out-file", help="Writing the settings to", type=str)
     parser.add_argument("-i", "--in-file", help="Reading the settings from", type=str)
@@ -147,6 +149,9 @@ def command_line():
             if args.dump:
                 print(json.dumps(shell.to_dict(), indent=2))
 
+            if args.weight:
+                print(shell.weight)
+                
             if args.reset:
                 if args.verbose:
                     print("Resetting board.")
