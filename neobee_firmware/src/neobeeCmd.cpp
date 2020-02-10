@@ -81,6 +81,10 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             };
             break;
 
+        /********************************************************
+         Managing the Scale Offset.
+         Supported Methods: GET, PUT, DELETE
+         ********************************************************/
         case CmdCode::SCALE_OFFSET:
             switch(method) {
                 case RequestMethod::GET:
@@ -108,10 +112,19 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             };
             break;
 
-        /* ------------------------------------
-         * GET_MAC_ADDRESS
-         */    
+        /********************************************************
+         Requesting the MAC Address.
+         Supported Methods: GET
+
+         Sends the MAC address back to the client. The mac
+         address has six bytes and it will by stored in the first
+         sic bytes of the data space of the response.
+         ********************************************************/
         case CmdCode::GET_MAC_ADDRESS:
+            #ifdef DEBUG
+            Serial.println("---- GET_MAC_ADDRESS ----");
+            #endif
+            
             switch(method) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::GET_MAC_ADDRESS, StatusCode::OK);
