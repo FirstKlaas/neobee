@@ -1,7 +1,7 @@
 #include "neobeeCmd.h"
 #include "neobeeContext.h"
 #include "neobeeUtil.h"
-
+#include "neobeeVersion.h"
 
 const char *ssid = "NeoBee";
 const char *password = "sumsum";
@@ -228,9 +228,9 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 2 : Version build number
              **/
             clearBuffer(CmdCode::GET_VERSION, StatusCode::OK);
-            m_data_space[0] = 0;
-            m_data_space[1] = 1;
-            m_data_space[2] = 1;
+            m_data_space[0] = MAJOR_VERSION;
+            m_data_space[1] = MINOR_VERSION;
+            m_data_space[2] = BUILD_VERSION;
             break;
 
         case CmdCode::IDLE_TIME:
