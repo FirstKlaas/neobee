@@ -28,22 +28,6 @@ methods are possible.
 === ======= ===============================================================
 
 
-[01] Get Name
--------------
-
-Getting the human readable name of the board. The name of the board
-should be unique, although it cannot be guaranteed by the board itself.
-
-Only ASCII_ characters are supported.
-
-===== ================================
-Byte  Description
-===== ================================
-00    Command byte. Always 1
-01    Request Modifier. Always 0
-02-29 0 [*unused*]
-===== ================================
-
 [01] Name
 ---------
 
@@ -59,7 +43,7 @@ Request
 Byte  Description
 ===== ================================
 00    Command byte. Always 2
-01    Method (GET / PUT / DELETE)
+01    Supported methods (``GET`` / ``PUT`` / ``DELETE``)
 02-29 Name in case of method ``PUT``. Zeroed for the other methods.
 ===== ================================
 
@@ -74,30 +58,32 @@ Byte  Description
 02-29 Name in case of method ``GET``. Zeroed for the other methods.
 ===== ================================
 
-[03] Get Flags
---------------
-
-Getting the flags., indicating the state of certain settings.
-
-===== ================================
-Byte  Description
-===== ================================
-00    Command byte. Always 3
-01    Request Modifier. Always 0
-02-29 0 [*unused*]
-===== ================================
-
 [04] Reset Settings
 -------------------
 
 Clears all settings. After rebooting the system, the board will
-automatically go into command mode.
+automatically go access point mode, as we don't have any wifi
+credentials to connect to.
+
+Request
+~~~~~~~
 
 ===== ================================
 Byte  Description
 ===== ================================
 00    Command byte. Always 4
-01    Request Modifier. Always 0
+01    Method. Always ``PUT``
+02-29 0 [*unused*]
+===== ================================
+
+Response
+~~~~~~~~
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 4
+01    Response Status
 02-29 0 [*unused*]
 ===== ================================
 
@@ -106,19 +92,32 @@ Byte  Description
 
 Saves the settings to the EEPROM.
 
+Request
+~~~~~~~
+
 ===== ================================
 Byte  Description
 ===== ================================
 00    Command byte. Always 5
-01    Request Modifier. Always 0
+01    Method. Always ``PUT``
+02-29 0 [*unused*]
+===== ================================
+
+Response
+~~~~~~~~
+
+===== ================================
+Byte  Description
+===== ================================
+00    Command byte. Always 5
+01    Response Status
 02-29 0 [*unused*]
 ===== ================================
 
 [06] Erase Settings
 -------------------
 
-Similar to reset settings, baut also removes the magic bytes from
-EEPROM.
+Fills the configuration space in EEPROM with zeros.
 
 ===== ================================
 Byte  Description
@@ -209,7 +208,8 @@ Byte  Description
 Returns the wifi networkname name (the ssid)  to connect to. If no
 ssid was configured. Returns a ``NOT_FOUND`` status.
 
-**Request**
+Request
+~~~~~~~
 
 ===== ================================
 Byte  Description
@@ -219,7 +219,8 @@ Byte  Description
 02-29 0 [*unused*]
 ===== ================================
 
-**Response**
+Response
+~~~~~~~~
 
 ===== ================================
 Byte  Description
@@ -235,7 +236,8 @@ Byte  Description
 
 Set the ssid to connect to.
 
-**Request**
+Request
+~~~~~~~
 
 ===== ================================
 Byte  Description
@@ -253,7 +255,8 @@ the board will automatically go into AP mode after reboot.
 The preferred way to force AP mode is to do a
 ``Set Wifi Active(False)`` request.
 
-**Request**
+Request
+~~~~~~~
 
 ===== ================================
 Byte  Description

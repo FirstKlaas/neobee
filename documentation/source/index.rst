@@ -3,6 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
+.. image:: images/neobee100.png
+
+
 Welcome to NeoBee's documentation!
 ==================================
 
@@ -10,8 +14,8 @@ Welcome to NeoBee's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   circuit
    getting_started
+   circuit
    python_environment
    entering_command_mode
    calibration

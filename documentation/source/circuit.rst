@@ -1,5 +1,5 @@
-The Circuit
-===========
+The Hardware and the Circuit
+============================
 
 THe following picture shows the circuit for the NeoBee hive logger.
 I used two dallas 18b20 temperature sensors. One sensore to be used
