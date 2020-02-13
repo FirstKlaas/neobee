@@ -5,7 +5,6 @@
 **/build/
 **/dist/
 **/_build/
-**/_static/
 **/*.code-workspace
 **/*.egg-info/
 

@@ -14,9 +14,12 @@ void saveContext(Context* ctx) {
     #endif
 }
 
+static const uint8_t MAGIC_BYTES[] PROGMEM = "NEOBEE";
+
 void resetContext(Context* ctx) {
-    memcpy(ctx->magic_bytes, "NEOBEE", 6);
+    memcpy_P(ctx->magic_bytes, MAGIC_BYTES, 6);
     memset(ctx->name,0,sizeof(ctx->name));
+
     ctx->wifi_network.reset();
     ctx->scale.reset();
     ctx->mqttServer.reset();

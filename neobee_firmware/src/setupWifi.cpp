@@ -1,8 +1,9 @@
 #include "setupWifi.h"
+#include "WString.h"
 
 #define MAX_WIFI_CONNECT_TRIES 50
-#define AP_SSID "NeoBee"
 
+static const char AP_SSID[]  PROGMEM = "NeoBee";
 
 WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
     WiFi.disconnect();
@@ -31,6 +32,9 @@ WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
         #ifdef DEBUG
         Serial.print(".");
         #endif
+        // When in COMMAND_MODE, we can use the LED to indicate
+        // that we are trying to connect to the wifi network.
+        // In IOT Mode we don't to reduce the power consumtion.
         if (mode == OperationMode::CMD_MODE) {
             statusLed.pulse(250,1,250);
         } else {
@@ -81,5 +85,5 @@ WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
     #endif 
 
     WiFi.mode(WIFI_AP);
-    return (WiFi.softAP(AP_SSID) ? WiFiMode::WIFI_AP : WiFiMode::WIFI_OFF);
+    return (WiFi.softAP(FPSTR(AP_SSID)) ? WiFiMode::WIFI_AP : WiFiMode::WIFI_OFF);
 }

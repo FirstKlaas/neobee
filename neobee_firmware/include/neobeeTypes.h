@@ -40,6 +40,7 @@ enum class CmdCode : uint8_t {
   SAVE_SETTINGS    =   5,
   ERASE_SETTINGS   =   6,
   RESET_ESP        =   7,
+  INFO             =   8,
 
   SCALE_OFFSET     =  10,
   SCALE_FACTOR     =  12,
