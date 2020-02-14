@@ -11,6 +11,9 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+#include "neobeeUtil.h"
+
+
 // Global FLAGS
 /**
 #define FLAG_OFFSET_SET           0
@@ -98,6 +101,14 @@ typedef struct {
   inline void setOffset(double new_offset) { offset = std::max(new_offset, 0.);  };
   inline void setFactor(float new_factor) { factor = std::max(new_factor, 0.f);  };
   inline void setGain(uint8_t new_gain) { gain = new_gain; };
+
+  inline void printOffset(uint8_t *dest) {
+    writeDouble100(getOffset(), dest);
+  }
+
+  inline void printFactor(uint8_t *dest) {
+    writeFloat100(getFactor(), dest);
+  }
 
   inline void reset() { 
     offset = 0;

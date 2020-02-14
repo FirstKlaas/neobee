@@ -58,6 +58,38 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             clearBuffer(CmdCode::NOP, StatusCode::OK); 
             break;
 
+        case CmdCode::INFO:
+            // New command since firmware version 0.1.2
+            switch(method) {
+                case RequestMethod::GET:
+                    clearBuffer(CmdCode::INFO, StatusCode::OK);
+                    m_data_space[0] = MAJOR_VERSION;
+                    m_data_space[1] = MINOR_VERSION;
+                    m_data_space[2] = BUILD_VERSION;
+                    m_data_space[3] = 0;
+                    bitWrite(m_data_space[3], 0, m_ctx.hasName());
+                    bitWrite(m_data_space[3], 1, m_ctx.wifi_network.hasSSID());
+                    bitWrite(m_data_space[3], 2, m_ctx.wifi_network.hasPassword());
+                    bitWrite(m_data_space[3], 3, m_ctx.mqttServer.hostnameSet());
+                    bitWrite(m_data_space[3], 4, m_ctx.mqttServer.portSet());
+                    bitWrite(m_data_space[3], 5, m_ctx.mqttServer.loginSet());
+                    bitWrite(m_data_space[3], 6, m_ctx.mqttServer.passwordSet());
+                    
+                    bitWrite(m_data_space[4], 0, m_ctx.scale.hasOffset());
+                    bitWrite(m_data_space[4], 1, m_ctx.scale.hasFactor());
+                    bitWrite(m_data_space[4], 2, m_ctx.scale.hasGain());
+                    //TODO: Mayby encode which channels are in use in two bits
+                    m_data_space[5] = m_temperature.getDeviceCount();
+                    m_ctx.scale.printOffset(m_data_space+6);
+                    m_ctx.scale.printFactor(m_data_space+10);
+                    break;
+                    
+                default:
+                    clearBuffer(CmdCode::INFO, StatusCode::BAD_METHOD);
+                    break;
+            };
+            break;
+
         case CmdCode::NAME:
             switch(method) {
                 case RequestMethod::GET:

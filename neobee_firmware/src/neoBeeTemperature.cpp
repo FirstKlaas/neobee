@@ -60,6 +60,10 @@ void NeoBeeTemperature::begin() {
   
 }
 
+uint8_t NeoBeeTemperature::getDeviceCount() {
+  return sensors.getDS18Count();
+}
+
 float NeoBeeTemperature::getCTemperatureByIndex(const uint8_t index) {
     begin();
     sensors.requestTemperatures();

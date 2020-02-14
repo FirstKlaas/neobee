@@ -12,6 +12,7 @@ class NeoBeeTemperature
 
     void begin();
     float getCTemperatureByIndex(const uint8_t index=0);
+    uint8_t getDeviceCount();
     bool hasInsideSensorAddress();
 
   private:
