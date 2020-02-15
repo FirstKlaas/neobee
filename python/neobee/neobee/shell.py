@@ -27,6 +27,7 @@ class CmdCode(IntEnum):
     SAVE_SETTINGS = 5
     ERASE_SETTINGS = 6
     RESET_ESP = 7
+    INFO = 8
 
     SCALE_OFFSET = 10
     SCALE_FACTOR = 12
@@ -64,6 +65,32 @@ class RequestMethod(IntEnum):
     GET = 1
     PUT = 2
     DELETE = 3
+
+
+class NeoBeeInfoFlag(IntFlag):
+
+    NONE            = 0 
+    NAME            = (1 << 0)
+    WIFI_SSID       = (1 << 1)
+    WIFI_PASSWORD   = (1 << 2)
+    MQTT_HOSTNAME   = (1 << 3)
+    MQTT_PORT       = (1 << 4)
+    MQTT_LOGIN      = (1 << 5)
+    MQTT_PASSWORD   = (1 << 6)
+    SCALE_OFFSET    = (1 << 8)
+    SCALE_FACTOR    = (1 << 9)
+    SCALE_GAIN      = (1 << 10) 
+
+class NeoBeeInfo:
+
+    def __init__(self):
+        self.major_version = None
+        self.minor_version = None
+        self.build_version = None
+        self.flags = NeoBeeInfoFlag.NONE
+        self.number_of_temperature_sensors = None
+        self.scale_offset = None
+        self.scale_factor = None
 
 
 class NeoBeeShell:
@@ -165,6 +192,36 @@ class NeoBeeShell:
         self.command = CmdCode.GET_VERSION
         self._send()
         return (self[0], self[1], self[2])
+
+    def testBit(self, value, bitpos):
+        if bitpos < 0 or bitpos > 7:
+            raise ValueError("Bitpos must be within range 0 and 7")
+
+        return ((value >> bitpos) & 1 == 1)
+
+    @property
+    def info(self) -> NeoBeeInfo:
+        if not self.connected:
+            raise NotConnectedError()
+
+        self._clearbuffer()
+        self.command = CmdCode.INFO
+        self._send()
+
+        info = NeoBeeInfo()
+        info.major_version = self[0]
+        info.minor_version = self[1]
+        info.build_version = self[2]
+
+        info.flags = (self[4] << 8) | self[3]
+        info.number_of_temperature_sensors = self[5]
+        info.scale_offset = self._read_float(6)
+        info.scale_factor = self._read_float(10)
+
+        return info
+
+    def _read_float(self, index:int=0) -> float:
+        ((self[index] << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3]) / 100.0
 
     @property
     def method(self) -> RequestMethod:

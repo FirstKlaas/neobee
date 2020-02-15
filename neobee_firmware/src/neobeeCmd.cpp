@@ -3,8 +3,8 @@
 #include "neobeeUtil.h"
 #include "neobeeVersion.h"
 
-static const char *ssid PROGMEM = "NeoBee";
-const char *password = "sumsum";
+//static const char *ssid PROGMEM = "NeoBee";
+//const char *password = "sumsum";
 
 #define HEADSIZE 2
 
