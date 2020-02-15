@@ -92,6 +92,45 @@ class NeoBeeInfo:
         self.scale_offset = None
         self.scale_factor = None
 
+    @property
+    def name_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.NAME)
+
+    @property
+    def wifi_ssid_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.WIFI_SSID)
+
+    @property
+    def wifi_password_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.WIFI_PASSWORD)
+    
+    @property
+    def mqtt_host_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.MQTT_HOSTNAME)
+
+    @property
+    def mqtt_port_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.MQTT_PORT)
+
+    @property
+    def mqtt_login_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.MQTT_LOGIN)
+
+    @property
+    def mqtt_password_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.MQTT_PASSWORD)
+
+    @property
+    def scale_offset_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.SCALE_OFFSET)
+
+    @property
+    def scale_factor_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.SCALE_FACTOR)
+
+    @property
+    def scale_gain_set(self) -> bool:
+        return bool(self.flags & NeoBeeInfoFlag.SCALE_GAIN)
 
 class NeoBeeShell:
     def __init__(self, host="192.168.4.1", port=8888):
@@ -206,6 +245,7 @@ class NeoBeeShell:
 
         self._clearbuffer()
         self.command = CmdCode.INFO
+        self.method = RequestMethod.GET
         self._send()
 
         info = NeoBeeInfo()
@@ -215,13 +255,13 @@ class NeoBeeShell:
 
         info.flags = (self[4] << 8) | self[3]
         info.number_of_temperature_sensors = self[5]
-        info.scale_offset = self._read_float(6)
-        info.scale_factor = self._read_float(10)
+        info.scale_offset = self._read_float(6) if info.scale_offset_set else None 
+        info.scale_factor = self._read_float(10) if info.scale_factor_set else None
 
         return info
 
     def _read_float(self, index:int=0) -> float:
-        ((self[index] << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3]) / 100.0
+        return ((self[index] << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3]) / 100.0
 
     @property
     def method(self) -> RequestMethod:
