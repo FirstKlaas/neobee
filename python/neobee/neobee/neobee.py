@@ -17,10 +17,12 @@ def command_line():
     parser.add_argument("--version", help="Print the firmware version.", action="store_true")
     parser.add_argument("-t", "--tare", help="Start taring the scale.", action="store_true")
     parser.add_argument("-c", "--calibrate", help="Start calibrating the scale.", type=int)
-    
-    parser.add_argument("--count", help="Number of iterations", nargs='?', type=int, const=1, default=1)
+
+    parser.add_argument(
+        "--count", help="Number of iterations", nargs="?", type=int, const=1, default=1
+    )
     parser.add_argument("--dump", help="Print current board configuration", action="store_true")
-    
+
     parser.add_argument("--ssid", help="The wifi network to connec to", type=str)
     parser.add_argument("--password", help="The wifi password", type=str)
 
@@ -38,7 +40,7 @@ def command_line():
     parser.add_argument("-i", "--in-file", help="Reading the settings from", type=str)
 
     args = parser.parse_args()
-    #print(args)
+    # print(args)
     host = "192.168.4.1"
 
     if args.host != "default":
@@ -59,7 +61,6 @@ def command_line():
             if args.calibrate:
                 print(shell.calibrate(args.calibrate, args.count)[1])
 
-
             if args.in_file:
                 with open(args.in_file, "r") as f:
                     data = json.load(f)
@@ -70,7 +71,9 @@ def command_line():
                     if "version" in data:
                         version_string = ".".join(format(x) for x in shell.get_version())
                         if version_string != data.get("version"):
-                            raise NeoBeeError(f"Version mismatch. {version_string} vs. {data.get('version')}")
+                            raise NeoBeeError(
+                                f"Version mismatch. {version_string} vs. {data.get('version')}"
+                            )
                     else:
                         raise NeoBeeError("No version attribute in configfile.")
 
@@ -151,7 +154,7 @@ def command_line():
 
             if args.weight:
                 print(shell.weight)
-                
+
             if args.reset:
                 if args.verbose:
                     print("Resetting board.")

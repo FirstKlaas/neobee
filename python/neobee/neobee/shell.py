@@ -69,20 +69,20 @@ class RequestMethod(IntEnum):
 
 class NeoBeeInfoFlag(IntFlag):
 
-    NONE            = 0 
-    NAME            = (1 << 0)
-    WIFI_SSID       = (1 << 1)
-    WIFI_PASSWORD   = (1 << 2)
-    MQTT_HOSTNAME   = (1 << 3)
-    MQTT_PORT       = (1 << 4)
-    MQTT_LOGIN      = (1 << 5)
-    MQTT_PASSWORD   = (1 << 6)
-    SCALE_OFFSET    = (1 << 8)
-    SCALE_FACTOR    = (1 << 9)
-    SCALE_GAIN      = (1 << 10) 
+    NONE = 0
+    NAME = 1 << 0
+    WIFI_SSID = 1 << 1
+    WIFI_PASSWORD = 1 << 2
+    MQTT_HOSTNAME = 1 << 3
+    MQTT_PORT = 1 << 4
+    MQTT_LOGIN = 1 << 5
+    MQTT_PASSWORD = 1 << 6
+    SCALE_OFFSET = 1 << 8
+    SCALE_FACTOR = 1 << 9
+    SCALE_GAIN = 1 << 10
+
 
 class NeoBeeInfo:
-
     def __init__(self):
         self.major_version = None
         self.minor_version = None
@@ -103,7 +103,7 @@ class NeoBeeInfo:
     @property
     def wifi_password_set(self) -> bool:
         return bool(self.flags & NeoBeeInfoFlag.WIFI_PASSWORD)
-    
+
     @property
     def mqtt_host_set(self) -> bool:
         return bool(self.flags & NeoBeeInfoFlag.MQTT_HOSTNAME)
@@ -131,6 +131,7 @@ class NeoBeeInfo:
     @property
     def scale_gain_set(self) -> bool:
         return bool(self.flags & NeoBeeInfoFlag.SCALE_GAIN)
+
 
 class NeoBeeShell:
     def __init__(self, host="192.168.4.1", port=8888):
@@ -236,7 +237,7 @@ class NeoBeeShell:
         if bitpos < 0 or bitpos > 7:
             raise ValueError("Bitpos must be within range 0 and 7")
 
-        return ((value >> bitpos) & 1 == 1)
+        return (value >> bitpos) & 1 == 1
 
     @property
     def info(self) -> NeoBeeInfo:
@@ -255,13 +256,15 @@ class NeoBeeShell:
 
         info.flags = (self[4] << 8) | self[3]
         info.number_of_temperature_sensors = self[5]
-        info.scale_offset = self._read_float(6) if info.scale_offset_set else None 
+        info.scale_offset = self._read_float(6) if info.scale_offset_set else None
         info.scale_factor = self._read_float(10) if info.scale_factor_set else None
 
         return info
 
-    def _read_float(self, index:int=0) -> float:
-        return ((self[index] << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3]) / 100.0
+    def _read_float(self, index: int = 0) -> float:
+        return (
+            (self[index] << 24) | (self[index + 1] << 16) | (self[index + 2] << 8) | self[index + 3]
+        ) / 100.0
 
     @property
     def method(self) -> RequestMethod:
