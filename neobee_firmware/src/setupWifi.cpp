@@ -1,5 +1,5 @@
 #include "setupWifi.h"
-#include "WString.h"
+#include <WString.h>
 
 #define MAX_WIFI_CONNECT_TRIES 50
 
