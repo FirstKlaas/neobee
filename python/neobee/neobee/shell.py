@@ -254,7 +254,7 @@ class NeoBeeShell:
         info.minor_version = self[1]
         info.build_version = self[2]
 
-        info.flags = (self[4] << 8) | self[3]
+        info.flags = (self[4] << 8) | self[3] # Read WORD (16bit)
         info.number_of_temperature_sensors = self[5]
         info.scale_offset = self._read_float(6) if info.scale_offset_set else None
         info.scale_factor = self._read_float(10) if info.scale_factor_set else None
@@ -319,7 +319,7 @@ class NeoBeeShell:
         self[1] = (iValue >> 16) & 0xFF
         self[2] = (iValue >> 8) & 0xFF
         self[3] = (iValue) & 0xFF
-        self._send()
+        self._send()        
 
     @property
     def scale_factor(self):

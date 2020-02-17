@@ -49,12 +49,17 @@ void setup() {
     // Start optimistic ;)
     mode = OperationMode::IOT_MODE;
 
-    #ifdef DEBUG
+    // I'm not shure, who is using serial, but without
+    // initialising, the code does not work. I don't think this
+    // relation of effects is correct and I have to do some 
+    // more investigation on this topic.
+    // But in the end I think initialising the serial interface
+    // has no downside.
     Serial.begin(SERIAL_SPEED);
-    //delay(1000);
     while(!Serial) {
         // Wait for serial connection
     };
+    #ifdef DEBUG
     delay(50);
     Serial.println("#############################################");
     Serial.println("# NeoBee - Hive Data Logger                 #");
