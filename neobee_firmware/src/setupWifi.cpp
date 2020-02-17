@@ -1,3 +1,9 @@
+/***********************************************************
+ * NeoBee - WiFi Setup
+ * 
+ * @author: Klaas Nebuhr <klaas.nebuhr@gmail.com>
+ * Copyright 2020
+ **********************************************************/
 #include "setupWifi.h"
 #include <WString.h>
 
