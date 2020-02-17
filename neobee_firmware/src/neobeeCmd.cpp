@@ -442,7 +442,9 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     clearBuffer(CmdCode::MQTT_LOGIN, StatusCode::OK);
                     if (m_ctx.mqttServer.loginSet()) {
                         m_ctx.mqttServer.copyLoginTo(m_data_space);
+                        #ifdef DEBUG
                         Serial.println(stringFromByteAray((uint8_t*) (m_ctx.mqttServer.login),30));
+                        #endif
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
                     };

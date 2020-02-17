@@ -66,11 +66,15 @@ void setup() {
     // Check, if the command mode button is pressed.
     // If pressed, the mode is set to CMD_MODE
     if (cmdButton.isPressed()) {
+        #ifdef DEBUG
         Serial.println("CMD Button pressed during boot.");
+        #endif
         mode = OperationMode::CMD_MODE;  
         statusLed.pulse(200,10,50);  
     } else {
+        #ifdef DEBUG
         Serial.println("CMD Button not pressed");
+        #endif
     }; 
 
 

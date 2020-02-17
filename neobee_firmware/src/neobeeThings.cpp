@@ -7,7 +7,9 @@ NeoBeeButton::NeoBeeButton(uint8_t pin): m_pin(pin) {
 NeoBeeButton::~NeoBeeButton() {};
 
 bool NeoBeeButton::isPressed() {
+    #ifdef DEBUG
     Serial.println(digitalRead(m_pin));
+    #endif
     return (digitalRead(m_pin) == HIGH );
 };
 
