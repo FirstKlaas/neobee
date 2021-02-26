@@ -144,6 +144,7 @@ your board using the configuration file.
 A configuration file to just set the name and the wifi credentials woul look like:
 
 .. code:: json
+
     {
         "device_name": "Neo1",
         "ssid": "myssid",
@@ -158,7 +159,7 @@ To then configure the board just type the following command:
     neobee 192.168.4.1 -i configuration.json --save --reset
 
 The board will reset and connect to the configured wifi network.
-If the board is not abled to connect to the wifi network, it will
+If the board is not able to connect to the wifi network, it will
 again setup an access point.
 
 .. _github_firmware: https://github.com/FirstKlaas/neobee/tree/master/neobee_firmware/firmware

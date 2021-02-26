@@ -37,6 +37,7 @@ Try the following:
 You should get something like:
 
 .. code-block:: bash
+
     usage: neobee [-h] [-v] [--reset] [--erase] [-s] [-n NAME] [--ssid SSID]
                 [--password PASSWORD] [--mqtt-host MQTT_HOST]
                 [--mqtt-port MQTT_PORT] [--mqtt-login MQTT_LOGIN]

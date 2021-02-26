@@ -21,7 +21,8 @@ Welcome to NeoBee's documentation!
    calibration
    commands
    f100
-
+   neobeeshell
+   mqtt
 
 Indices and tables
 ==================

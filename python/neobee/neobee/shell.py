@@ -134,7 +134,26 @@ class NeoBeeInfo:
 
 
 class NeoBeeShell:
+    """
+    The NeoBeeShell is the main class to configure the controller
+    programmatically. The class implements pythons context protocol.
+    To use this class, you have to be in the same network as the
+    controller. When the controller acts as an access point, connect
+    to the controller before using the class.
+
+    When using with the ``with`` clause, the class connects before
+    executing the statements and disconnects at the end. Even if
+    an exception occurs. This is the preferred way to use the class.
+
+    :param host: The IP of the controller. Defaults to 192.168.4.1
+    :type host: str, optional
+    :param port: The port to connect to. Defaults to 8888
+    :type port: int
+    """
     def __init__(self, host="192.168.4.1", port=8888):
+        """
+            This is the constructor
+        """
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host
         self.port = port
@@ -157,15 +176,26 @@ class NeoBeeShell:
 
     @property
     def connected(self):
+        """
+        Boolean flag indicating if the controller is connected or not.
+        """
         return self._connected
 
     def connect(self):
+        """
+        Connects to the controller. If a connection already has been
+        established, an AlreadyConnectedError is raised.
+        """
         if self.connected:
             raise AlreadyConnectedError()
 
         self.__enter__()
 
     def disconnect(self):
+        """
+        Disconnects from the controller. If no connection has been
+        established, an NotConnectedError is raised.
+        """
         if not self.connected:
             raise NotConnectedError()
 
