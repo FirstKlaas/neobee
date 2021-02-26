@@ -15,15 +15,15 @@ def command_line():
 
     parser.add_argument("-n", "--name", help="The name of the neobee board", type=str)
     parser.add_argument("--version", help="Print the firmware version.", action="store_true")
-    parser.add_argument("-t", "--tare", help="Start taring the scale.", action="store_true")
-    parser.add_argument("-c", "--calibrate", help="Start calibrating the scale.", type=int)
+    parser.add_argument("-t", "--tare", help="Taring the scale.", action="store_true")
+    parser.add_argument("-c", "--calibrate", help="Calibrating the scale.", type=int)
 
     parser.add_argument(
         "--count", help="Number of iterations", nargs="?", type=int, const=1, default=1
     )
     parser.add_argument("--dump", help="Print current board configuration", action="store_true")
 
-    parser.add_argument("--ssid", help="The wifi network to connec to", type=str)
+    parser.add_argument("--ssid", help="The wifi network to connect to", type=str)
     parser.add_argument("--password", help="The wifi password", type=str)
 
     parser.add_argument("--mqtt-host", help="The mqtt host", type=str)
@@ -53,7 +53,7 @@ def command_line():
         with NeoBeeShell(host=host) as shell:
 
             if args.version:
-                print(".".join(format(x) for x in shell.get_version()))
+                print(".".join(format(x) for x in shell.version))
 
             if args.tare:
                 print(shell.tare(args.count)[0])
@@ -69,7 +69,7 @@ def command_line():
                     # config file matches the version
                     # of the firmware.
                     if "version" in data:
-                        version_string = ".".join(format(x) for x in shell.get_version())
+                        version_string = ".".join(format(x) for x in shell.version)
                         if version_string != data.get("version"):
                             raise NeoBeeError(
                                 f"Version mismatch. {version_string} vs. {data.get('version')}"

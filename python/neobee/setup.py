@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="neobee", # Replace with your own username
-    version="0.0.2",
+    version="0.0.3",
     author="Klaas Nebuhr <FirstKlaas>",
     author_email="klaas.nebuhr@gmail.com",
     description="Condition Monitoring for Bee Hives",

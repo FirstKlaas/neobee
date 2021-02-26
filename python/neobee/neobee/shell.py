@@ -155,6 +155,7 @@ class NeoBeeShell:
         self._socket.close()
         self._connected = False
 
+    @property
     def connected(self):
         return self._connected
 
@@ -224,7 +225,8 @@ class NeoBeeShell:
     def __setitem__(self, index, value):
         self._buffer[index + 2] = value & 0xFF
 
-    def get_version(self):
+    @property
+    def version(self):
         if not self.connected:
             raise NotConnectedError()
 
@@ -648,7 +650,7 @@ class NeoBeeShell:
     def to_dict(self):
         _d = {}
         _d["firmware_version"] = "{version[0]}.{version[1]}.{version[2]}".format(
-            version=self.get_version()
+            version=self.version
         )
         _d["device_name"] = self.name
         _d["mac_address"] = str(self.mac_address)
