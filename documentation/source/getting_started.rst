@@ -138,7 +138,20 @@ tutorial.
 After saving out your changes, you can know easily configure
 your board using the configuration file.
 
-Just type the following command:
+.. note::
+    Delete the line you don't want to change or have no value bevor writing them back.
+
+A configuration file to just set the name and the wifi credentials woul look like:
+
+.. code:: json
+    {
+        "device_name": "Neo1",
+        "ssid": "myssid",
+        "password": "mypassword"
+    }
+
+
+To then configure the board just type the following command:
 
 .. code-block:: bash
 
