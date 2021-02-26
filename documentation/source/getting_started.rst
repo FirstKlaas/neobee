@@ -83,7 +83,21 @@ Maybe a good moment for a cup of tea.
 Configure the board
 -------------------
 
-Next step is to configure the board. The easiest way is to download the current
+Next step is to configure the board. If you start with a fresh installalation of the firmware, the controller is not configured.
+For example the controller does not know which wifi networt to connect to.
+
+Therefore the controller automatically boots into AP (Access Point) mode. You should find a new 
+WiFi network called "NeoBee" you can connect to without the need of any credentials.
+
+At least for the configuration of the wifi network, the computer needs to be connected to this
+neobee hotspot. 
+
+.. note::
+    Of course the controller does not act as a router or dns server. So beware of the fact that
+    as long as you are connected to the controller you cannot access the internet or other lokal
+    ressources.
+ 
+The easiest way is to download the current
 configuration, which is of course empty, but serves as a template. When the board
 acts as an AP, the IP for the board is ``192.168.4.1``.
 
