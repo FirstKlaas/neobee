@@ -10,14 +10,16 @@ help:
 	@echo  "    lint	Reports all linter violations"
 
 up:
-	@pip install -q pip-tools
+	@pip install -q --upgrade pip-tools
+	@pip install -q --upgrade wheel
+	@pip install -q --upgrade setuptools
 	CUSTOM_COMPILE_COMMAND="make up" pip-compile -o requirements.txt requirements.in -U
 	CUSTOM_COMPILE_COMMAND="make up" pip-compile -o requirements-dev.txt requirements-dev.in -U
 
 deps:
-	@pip install -q pip-tools
-	@pip install -q wheel
-	@pip install -q setuptools
+	@pip install -q --upgrade pip-tools
+	@pip install -q --upgrade wheel
+	@pip install -q --upgrade setuptools
 	@pip-sync requirements-dev.txt
 
 lint: deps

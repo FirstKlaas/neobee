@@ -10,12 +10,13 @@ BUILDDIR      = build
 CHECKFILES    = neobee
 
 up:
-	@pip install -q pip-tools
+	@pip install -q --upgrade pip-tools
+	@pip install -q --upgrade wheel
 	CUSTOM_COMPILE_COMMAND="make up" pip-compile -o requirements.txt requirements.in -U
 
 deps:
-	@pip install -q pip-tools
-	@pip install -q wheel
+	@pip install -q --upgrade pip-tools
+	@pip install -q --upgrade wheel
 	@pip-sync requirements.txt
 
 checkdocs:
