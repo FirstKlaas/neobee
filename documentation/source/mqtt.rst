@@ -11,15 +11,16 @@ The easiest way is to use the neobee command that is available
 after you installed the library. The process of configuration is
 explain in :ref:`configuring_the_board`.
 
-Now delete all rows in the config file beside the mqtt rows and fill
+Now delete all rows in the config file beside the mqtt rows and the firmware version. Now fill
 in the apropiatecvalues. If you don't need credentials simply drop
 those lines too.
 
 .. code-block:: json
 
     {
+    "firmware_version": "0.1.1",
     "mqtt_host": "broker.hivemq.com",
-    "mqtt_port": 1883,
+    "mqtt_port": 1883
     }
 
 Now load back the configuration to the board and don't forget to save

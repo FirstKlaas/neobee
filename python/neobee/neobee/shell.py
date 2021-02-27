@@ -150,9 +150,10 @@ class NeoBeeShell:
     :param port: The port to connect to. Defaults to 8888
     :type port: int
     """
+
     def __init__(self, host="192.168.4.1", port=8888):
         """
-            This is the constructor
+        This is the constructor
         """
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host

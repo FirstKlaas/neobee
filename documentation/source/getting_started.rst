@@ -53,7 +53,10 @@ Now you can flash the firmware you just downloaded:
 
 .. code-block:: bash
 
-    esptool.py --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect 0 noebee_latest.bin
+    esptool.py --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect 0 ../neobee_latest.bin
+    
+.. code-block:: bash
+
     esptool.py v2.8
     Serial port /dev/ttyUSB0
     Connecting....
@@ -83,6 +86,7 @@ wifi network shows up ``NeoBee``. Congratulations!!! Your board is working.
 Maybe a good moment for a cup of tea.
 
 .. _configuring_the_board:
+
 Configuring the board
 ---------------------
 
@@ -103,6 +107,9 @@ neobee hotspot.
 The easiest way is to download the current
 configuration, which is of course empty, but serves as a template. When the board
 acts as an AP, the IP for the board is ``192.168.4.1``.
+
+.. note::
+    Connect to the network called neobee!
 
 To download the configuration, type the following command:
 
@@ -132,7 +139,7 @@ The generated file should look like this (the firmware version may differ):
 
 Leave the ``firmware_version`` and the ``mac_adress`` entry
 as they are and adopt all other setting to your needs. Most
-probably, you will not knoe the correct values for the
+probably, you will not know the correct values for the
 ``scale_factor`` and the ``scale_offset``. We will determine
 these values in the in the
 :ref:`taring and calibrating the scale <taring-and-calibrating>`
