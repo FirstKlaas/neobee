@@ -47,8 +47,7 @@ def on_message(client: mqtt.Client, userdata, message):
 
 client = mqtt.Client("dumper")
 client.on_message = on_message
-client.username_pw_set("encoway", "encowa")
-client.connect("vm-web.lenze.digital")
+client.connect("broker.hivemq.com")
 client.subscribe("/neobee/hive/#")
 
 client.loop_forever()

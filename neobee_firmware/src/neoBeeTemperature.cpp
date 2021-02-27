@@ -54,8 +54,12 @@ void NeoBeeTemperature::begin() {
   oneWire.search(m_ctx.temperature.addr_inside);
   oneWire.search(m_ctx.temperature.addr_outside);
   oneWire.reset_search();
-  printByteArray(m_ctx.temperature.addr_inside,8);
-  printByteArray(m_ctx.temperature.addr_outside,8);
+  if (sensors.getDeviceCount() > 0) {
+    printByteArray(m_ctx.temperature.addr_inside,8);
+    printByteArray(m_ctx.temperature.addr_outside,8);
+  } else {
+    Serial.println("No temperature sensors found.");
+  }
   #endif
   
 }
@@ -66,6 +70,13 @@ uint8_t NeoBeeTemperature::getDeviceCount() {
 
 float NeoBeeTemperature::getCTemperatureByIndex(const uint8_t index) {
     begin();
+    if (sensors.getDeviceCount() == 0) {
+      #ifdef DEBUG
+      Serial.println("No temperature sensors present. Ignoring call and returning 0.");
+      return 0.0f;
+      #endif
+    }
+
     sensors.requestTemperatures();
     return sensors.getTempCByIndex(index);
 }

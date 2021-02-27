@@ -20,6 +20,7 @@ class NeoBeeScale
     virtual ~NeoBeeScale();
 
     bool begin();
+    bool hasStarted();
     bool calibrate(uint16_t reference_weight, uint8_t ntimes = 10);
     float getWeight(uint8_t ntimes = 20, WeightMethod method = WeightMethod::MedianAverage);
 

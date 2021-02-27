@@ -1,3 +1,5 @@
+.. _getting_started:
+
 Getting started
 ===============
 
@@ -80,8 +82,9 @@ If everything worked fine. The LED of yout NeoBee Board shoul be on. Also a new
 wifi network shows up ``NeoBee``. Congratulations!!! Your board is working.
 Maybe a good moment for a cup of tea.
 
-Configure the board
--------------------
+.. _configuring_the_board:
+Configuring the board
+---------------------
 
 Next step is to configure the board. If you start with a fresh installalation of the firmware, the controller is not configured.
 For example the controller does not know which wifi networt to connect to.

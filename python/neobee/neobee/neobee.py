@@ -68,11 +68,11 @@ def command_line():
                     # First check, if te version in the
                     # config file matches the version
                     # of the firmware.
-                    if "version" in data:
+                    if "firmware_version" in data:
                         version_string = ".".join(format(x) for x in shell.version)
-                        if version_string != data.get("version"):
+                        if version_string != data.get("firmware_version"):
                             raise NeoBeeError(
-                                f"Version mismatch. {version_string} vs. {data.get('version')}"
+                                f"Version mismatch. {version_string} vs. {data.get('firmware_version')}"
                             )
                     else:
                         raise NeoBeeError("No version attribute in configfile.")

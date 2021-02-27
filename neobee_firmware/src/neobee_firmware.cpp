@@ -61,6 +61,8 @@ void setup() {
     };
     #ifdef DEBUG
     delay(50);
+    Serial.println();
+    Serial.println();
     Serial.println("#############################################");
     Serial.println("# NeoBee - Hive Data Logger                 #");
     Serial.println("#############################################");
@@ -97,8 +99,17 @@ void setup() {
     }
 
     // Start the sensors
+    #ifdef DEBUG
+    Serial.println("Checking the temperature sensors.");
+    #endif
+    
     temperature.begin();
-    scale.begin();
+    
+    if (ctx.scale.offset == 0) {
+        Serial.println("No scale offset set. Ignoring scale.");
+    } else {
+        scale.begin();
+    };
   
     // Now setup the wifi network
     wifiMode = setupWifi(ctx, mode, statusLed);
@@ -125,7 +136,8 @@ void setup() {
         // We are in station mode, so it does make sense,
         // to connect to the mqtt server (if configured)
         #ifdef DEBUG
-        Serial.println("We are in station mode. Checking mqtt.");
+        Serial.println("We are in station mode.");
+        Serial.println("Checking mqtt.");
         #endif
         mqtt.connect();
     };
@@ -174,7 +186,7 @@ void loop() {
             currentMillis = millis();
             if (mqtt.isConnected()) {
             #ifdef DEBUG
-            Serial.println("Measure and delay");
+            Serial.println("Measure, publish and delay");
             #endif
             mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
             }

@@ -7,7 +7,7 @@
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-#define buffer_size 32 // The buffer size for messages to send
+#define buffer_size 64 // The buffer size for messages to send
 #define NbMqtt m_ctx.mqttServer
 
 NeoBeeMqtt::NeoBeeMqtt(Context& ctx): 
@@ -21,7 +21,7 @@ m_buffer(nullptr), m_ctx(ctx)
 };
 
 NeoBeeMqtt::~NeoBeeMqtt() {
-    delete m_buffer;
+    delete[] m_buffer;
 };
 
 void NeoBeeMqtt::setHost(const uint8_t* host) {
@@ -70,7 +70,7 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
 
     #ifdef DEBUG
     Serial.println("Connecting to mqtt server");
-    Serial.print("client: ");
+    Serial.print("Mqtt Client ID: ");
     Serial.println(clientId);
     Serial.print("Server: ");
     Serial.print(NbMqtt.getHostName());
@@ -85,8 +85,9 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     client.setServer(tmpHostName.c_str(), NbMqtt.port);
     //client.setServer("192.168.178.77", 1883);
     #ifdef DEBUG
-    if (!NbMqtt.loginSet()) Serial.println("No Login");
-    if (!NbMqtt.passwordSet()) Serial.println("No Password");
+    if (!NbMqtt.loginSet()) Serial.print("No Login. ");
+    if (!NbMqtt.passwordSet()) Serial.print("No Password.");
+    Serial.println();
     
     if (NbMqtt.credentialsSet()) {
         Serial.println("Connecting to mqtt server with credentials.");
@@ -111,27 +112,35 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
         };
     };
     #ifdef DEBUG
-    Serial.println();
+    Serial.println("");
     #endif
 
     if (client.connected()) {
         uint8_t* bufferPtr(getBuffer());
         uint32_t ip = uint32_t(WiFi.localIP());
 
+        // Clearing out the buffer
+        memset(bufferPtr,0,bufferSize());
+        // Storing the MAC address in the first six bytes
         WiFi.macAddress(bufferPtr);
         bufferPtr += 6;
+        // Storing the IP in the next four bytes 
         memcpy(bufferPtr, &ip, 4);
         bufferPtr += 4;
-        writeDouble100(m_ctx.scale.offset, bufferPtr);
-        bufferPtr += 4;
-        writeFloat100(m_ctx.scale.factor, bufferPtr);
-        bufferPtr += 4;
-
+        // Storing the name in the next 20 bytes
+        printByteArray(m_ctx.name, 20);
+        memcpy(bufferPtr, m_ctx.name, 20);
+        bufferPtr += 20;
+        #ifdef DEBUG
+        Serial.println("Connected. Publishing connect message.");
+        #endif
         client.publish("/neobee/hive/connect", getBuffer(), bufferPtr - getBuffer());
+
     } else {
         #ifdef DEBUG
         Serial.println("Could not connect to mqtt server");
-        Serial.println(NbMqtt.getHostName());
+        Serial.print(NbMqtt.getHostName());
+        Serial.print(":");
         Serial.println(NbMqtt.port);
         
         #endif
@@ -147,7 +156,7 @@ bool NeoBeeMqtt::isConnected()
 
 uint8_t* NeoBeeMqtt::getBuffer() {
     if (m_buffer == nullptr) {
-        m_buffer = new uint8_t(bufferSize());
+        m_buffer = new uint8_t[bufferSize()];
     };
     return m_buffer;
 };
@@ -176,5 +185,9 @@ void NeoBeeMqtt::publishData(float weight, float tempInside, float tempOutside) 
     writeFloat100(tempOutside, bufferPtr);
     bufferPtr += 4;
     client.publish("/neobee/hive/rawdata", getBuffer(), 18);
+    #ifdef DEBUG
+    Serial.println("Topic: /neobee/hive/rawdata");
+    printByteArray(getBuffer(), 18);
+    #endif
     memset(getBuffer(),0,18);
 }

@@ -15,9 +15,19 @@ m_ctx(ctx), _has_started(false)
 
 NeoBeeScale::~NeoBeeScale() {}
 
+bool NeoBeeScale::hasStarted() {
+  return _has_started;
+}
 bool NeoBeeScale::begin() {
 
-  if (_has_started) return false;
+  if (hasStarted()) return false;
+
+  if (getOffset() == 0) {
+    #ifdef DEBUG
+      Serial.println("No offset available. Scale will be disabled.");
+    #endif
+    return false;
+  }
   #ifdef DEBUG
     Serial.println("Starting scale");
   #endif
@@ -32,7 +42,13 @@ bool NeoBeeScale::begin() {
 }
 
 float NeoBeeScale::getWeight(uint8_t ntimes, WeightMethod method) {
-    begin();
+    if (!hasStarted()) {
+      #ifdef DEBUG
+      Serial.println("No scale present. Returning 0.0");
+      #endif
+      return 0.0f;
+    };
+
     switch (method) {
         case WeightMethod::Median:
             return std::max((readMedian() - getOffset()) / getFactor(), 0.);
@@ -52,12 +68,13 @@ float NeoBeeScale::getWeight(uint8_t ntimes, WeightMethod method) {
 }
 
 long NeoBeeScale::getRaw(uint8_t ntimes) {
-  begin();
+  if (!hasStarted()) return 0;
+    
   return _scale.read_average(ntimes);   
 }
 
 long NeoBeeScale::readMedian() {
-  begin();
+  if (!hasStarted()) return 0;
   for (uint8_t i=0; i<15; i++) {
     _values[i] = _scale.read();
   };
@@ -66,7 +83,7 @@ long NeoBeeScale::readMedian() {
 }
 
 long NeoBeeScale::readMedAvg() {
-  begin();
+  if (!hasStarted()) return 0;
   for (uint8_t i=0; i<15; i++) {
     _values[i] = _scale.read();
   };
@@ -75,7 +92,7 @@ long NeoBeeScale::readMedAvg() {
 }
 
 double NeoBeeScale::readPrecise(uint8_t ntimes) {
-  begin();
+  if (!hasStarted()) return 0.0f;
   long raw = 0;
   for (uint8_t i=0; i<ntimes; i++) {
       raw += readMedian();
@@ -84,6 +101,8 @@ double NeoBeeScale::readPrecise(uint8_t ntimes) {
 }
 
 bool NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
+  if (!hasStarted()) return false;
+  
   if (ntimes == 0) {
     #ifdef DEBUG
     Serial.println("Number of measures is 0. Cannot calibrate.");
@@ -104,6 +123,8 @@ bool NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
 }
 
 void NeoBeeScale::tare(uint8_t ntimes) {
+  if (!hasStarted()) return;
+  
   double raw = ntimes > 1 ? readPrecise(ntimes) : readMedian();
   #ifdef DEBUG
   Serial.println("___TARE___");
