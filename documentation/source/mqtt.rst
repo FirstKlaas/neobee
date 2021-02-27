@@ -59,8 +59,8 @@ Topics
 ------
 
 When the board connects to the mqtt server it publishes a messagewith
-the topic `/neobee/hive/connect`. The payload contains the data as described
-above.
+the topic `/neobee/hive/connect`. The payload contains the MAC address
+[6 bytes], the IP [4 bytes] and the name [20 bytes] of the board.
 
 Everytime a measurement is triggered, a message with the topic `/neobee/hive/rawdata`
 is send. The payload contains the data as desribed above.
