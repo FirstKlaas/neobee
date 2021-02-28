@@ -87,6 +87,29 @@ If everything worked fine. The LED of yout NeoBee Board should be on. Also a new
 wifi network shows up ``NeoBee``. Congratulations!!! Your board is working.
 Maybe a good moment for a cup of tea.
 
+Checking the log messags with a teminal
+---------------------------------------
+
+If you flashed the debug version of the fimware, you can watch the log
+messages with a terminal app.
+
+Here I use `screen` to connect to the board. Of course this works only,
+if the board is connected to your computer via an usb cable.
+
+In a linux terminal type in:
+
+.. code:: bash
+
+    screen /dev/ttyUSB0 9600
+
+The 9600 is important, because the speed is part of the firmware and
+cannot be changed (unless you chang the source code).
+
+Here's a short video on how this will look like.After starting `screen`
+you need to press the `reset button` of your board.
+
+.. youtube:: ynODvW_O63o
+
 .. _configuring_the_board:
 
 Configuring the board
