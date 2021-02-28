@@ -33,7 +33,7 @@ master_doc = 'index'
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinxcontrib.youtube"
+    "sphinxcontrib.yt"
 ]
 
 # Add any paths that contain templates here, relative to this directory.

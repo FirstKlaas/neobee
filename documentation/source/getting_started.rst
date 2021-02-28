@@ -17,7 +17,7 @@ First you need to flash the neobee firmware to your wemos.
 Every version of the firmware comes as a debug and a production
 version. You can download the firmware from `github <github_firmware>`_.
 
-.. youtube:: https://www.youtube.com/watch?v=lE4uKr7uM5Y
+.. youtube:: lE4uKr7uM5Y
 
 Or, if you prefer to use curl:
 

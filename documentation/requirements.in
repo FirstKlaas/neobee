@@ -2,4 +2,6 @@ sphinx
 sphinx_rtd_theme
 doc8
 sphinx-autobuild
-sphinxcontrib.youtube
+#sphinxcontrib.youtube
+sphinxcontrib.yt
+
