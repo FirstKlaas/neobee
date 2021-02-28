@@ -62,6 +62,7 @@ sphinx==3.5.1
     #   -r requirements.in
     #   sphinx-autobuild
     #   sphinx-rtd-theme
+    #   sphinxcontrib.youtube
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
@@ -74,6 +75,8 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.4
     # via sphinx
+sphinxcontrib.youtube==0.1.2
+    # via -r requirements.in
 stevedore==3.3.0
     # via doc8
 tornado==6.1

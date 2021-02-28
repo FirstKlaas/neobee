@@ -17,6 +17,8 @@ First you need to flash the neobee firmware to your wemos.
 Every version of the firmware comes as a debug and a production
 version. You can download the firmware from `github <github_firmware>`_.
 
+.. youtube:: https://www.youtube.com/watch?v=lE4uKr7uM5Y
+
 Or, if you prefer to use curl:
 
 .. code-block:: bash
@@ -79,9 +81,9 @@ Now you can flash the firmware you just downloaded:
     Leaving...
     Hard resetting via RTS pin...
 
-Of course you have to adopt the port to whatever is the right one for you.
+Of course you have to adopt the device to whatever is the right one for you.
 
-If everything worked fine. The LED of yout NeoBee Board shoul be on. Also a new
+If everything worked fine. The LED of yout NeoBee Board should be on. Also a new
 wifi network shows up ``NeoBee``. Congratulations!!! Your board is working.
 Maybe a good moment for a cup of tea.
 
@@ -90,7 +92,8 @@ Maybe a good moment for a cup of tea.
 Configuring the board
 ---------------------
 
-Next step is to configure the board. If you start with a fresh installalation of the firmware, the controller is not configured.
+Next step is to configure the board. If you have started with a fresh installation of the firmware,
+the controller is not configured.
 For example the controller does not know which wifi networt to connect to.
 
 Therefore the controller automatically boots into AP (Access Point) mode. You should find a new 
@@ -109,7 +112,7 @@ configuration, which is of course empty, but serves as a template. When the boar
 acts as an AP, the IP for the board is ``192.168.4.1``.
 
 .. note::
-    Connect to the network called neobee!
+    Connect to the network called NeoBee!
 
 To download the configuration, type the following command:
 
@@ -156,6 +159,7 @@ A configuration file to just set the name and the wifi credentials woul look lik
 .. code:: json
 
     {
+        "firmware_version": "0.0.1", 
         "device_name": "Neo1",
         "ssid": "myssid",
         "password": "mypassword"
