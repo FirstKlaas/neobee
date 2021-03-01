@@ -186,6 +186,9 @@ class NeoBeeShell:
         """
         Connects to the controller. If a connection already has been
         established, an AlreadyConnectedError is raised.
+
+        The preferred way to use this class is in a `with` statement,
+        which eliminates the need to connect or disconnect explicitly.
         """
         if self.connected:
             raise AlreadyConnectedError()
@@ -258,6 +261,10 @@ class NeoBeeShell:
 
     @property
     def version(self):
+        """
+        Returns the version of the firmware as a tuple
+        (MAJOR, MINOR, BUILD).
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -274,6 +281,10 @@ class NeoBeeShell:
 
     @property
     def info(self) -> NeoBeeInfo:
+        """
+        Returns a `NeoBeeInfo` object, which contains all the current
+        settings.
+        """ 
         if not self.connected:
             raise NotConnectedError()
 
@@ -321,6 +332,9 @@ class NeoBeeShell:
 
     @property
     def scale_offset(self):
+        """
+        Float property for the offset of the scale.
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -356,6 +370,9 @@ class NeoBeeShell:
 
     @property
     def scale_factor(self):
+        """
+        Float property for the scale factor.
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -390,6 +407,10 @@ class NeoBeeShell:
 
     @property
     def mac_address(self):
+        """
+        Returns a MacAddress object with the mac address
+        of the board.
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -404,6 +425,14 @@ class NeoBeeShell:
 
     @property
     def name(self):
+        """
+        String property for the name of the board.
+        The length of the name is limited to 20 and
+        is expected to be in ascii encoded.
+
+        If a name longer then 20 characters is provided,
+        a DataError is raised.
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -434,6 +463,9 @@ class NeoBeeShell:
         self._send()
 
     def save_settings(self):
+        """
+        Stores the settings to the flash memory.
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -442,6 +474,10 @@ class NeoBeeShell:
         self._send()
 
     def erase_settings(self):
+        """
+        Removes the stored settings from flash memory.
+        After a reboot, the board acts as a AP again.
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -459,6 +495,9 @@ class NeoBeeShell:
 
     @property
     def ssid(self) -> str:
+        """
+        String property for the ssid of the wifi network.
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -488,6 +527,9 @@ class NeoBeeShell:
 
     @property
     def wifi_password(self):
+        """
+        String property for the wifi_password.
+        """
         self._clearbuffer()
         self.method = RequestMethod.GET
         self.command = CmdCode.PASSWORD
@@ -541,6 +583,10 @@ class NeoBeeShell:
 
     @property
     def temperature(self):
+        """
+        Reads the temperature of both sensors. Returns the temperature
+        as a float value in celsius degree.
+        """ 
         self._clearbuffer()
         self.method = RequestMethod.GET
         self.command = CmdCode.GET_TEMPERATURE
@@ -548,6 +594,16 @@ class NeoBeeShell:
         return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
 
     def tare(self, nr_times: int):
+        """
+        Command to trigger the taring.
+
+        Taring is the process to determine the 0 value of
+        the scale. So, before triggering this command, empty
+        the scale.
+
+        nr_times specifies the number of measurements excecuted to
+        calculate the tare as an average of the measured values.
+        """
         self._clearbuffer()
         self.method = RequestMethod.NONE
         self.command = CmdCode.TARE
@@ -558,7 +614,19 @@ class NeoBeeShell:
         return (offset, factor)
 
     def calibrate(self, ref_weight: int, count: int):
-        print("Calibrating", count, "-times")
+        """
+        Calibrates the scale. Before calibrating the scale, be sure,
+        to tare the scale correctly.
+
+        To calibrate the weight, a reference weight is needed. And the value
+        you provide determines the unit to be used.
+
+        Example:
+
+        Put a weight of 1 kilogramm onto the scale. If you now call this method
+        with a ref_weight of 1, all measurements are done in kilogramm. If you call
+        this method with a value of 1000, all measurements are done in gramm. 
+        """
         self._clearbuffer()
         self.method = RequestMethod.GET
         self.command = CmdCode.CALIBRATE
