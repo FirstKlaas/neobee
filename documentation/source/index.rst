@@ -17,6 +17,7 @@ Welcome to NeoBee's documentation!
    getting_started
    circuit
    python_environment
+   neobee
    entering_command_mode
    calibration
    commands
