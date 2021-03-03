@@ -103,13 +103,8 @@ void setup() {
     Serial.println("Checking the temperature sensors.");
     #endif
     
-    temperature.begin();
-    
-    if (ctx.scale.offset == 0) {
-        Serial.println("No scale offset set. Ignoring scale.");
-    } else {
-        scale.begin();
-    };
+    temperature.begin();    
+    scale.begin();
   
     // Now setup the wifi network
     wifiMode = setupWifi(ctx, mode, statusLed);

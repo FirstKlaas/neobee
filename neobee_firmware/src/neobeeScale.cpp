@@ -22,23 +22,34 @@ bool NeoBeeScale::begin() {
 
   if (hasStarted()) return false;
 
-  if (getOffset() == 0) {
-    #ifdef DEBUG
-      Serial.println("No offset available. Scale will be disabled.");
-    #endif
-    return false;
-  }
   #ifdef DEBUG
     Serial.println("Starting scale");
   #endif
 
-  _has_started = true;
-
   _scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);  
-  delay(200);
-  _scale.set_offset(m_ctx.scale.offset);
-  _scale.set_scale(m_ctx.scale.factor);
-  return true;
+
+  /**
+   * New in Version 0.1.5
+   * 
+   * Test, if scale is present. Using a timeout of 5 seconds and
+   * a delay of 200 ms. If the scale is not ready, the scale will
+   * be ignored. The prior versions used the "ready" function, which
+   * is a blocking version of the function.
+   **/
+
+  if (_scale.wait_ready_timeout(5000,200)) {
+    _has_started = true;
+    _scale.set_offset(m_ctx.scale.offset);
+    _scale.set_scale(m_ctx.scale.factor);
+    return true;
+  };
+
+  #ifdef DEBUG
+    Serial.println("Cannot start scale. Check hardware and wiring.");
+  #endif
+
+  _has_started = false;
+  return false;
 }
 
 float NeoBeeScale::getWeight(uint8_t ntimes, WeightMethod method) {
@@ -68,13 +79,23 @@ float NeoBeeScale::getWeight(uint8_t ntimes, WeightMethod method) {
 }
 
 long NeoBeeScale::getRaw(uint8_t ntimes) {
-  if (!hasStarted()) return 0;
+  if (!hasStarted()) {
+      #ifdef DEBUG
+      Serial.println("No scale present. Returning 0");
+      #endif
+      return 0;
+  }; 
     
   return _scale.read_average(ntimes);   
 }
 
 long NeoBeeScale::readMedian() {
-  if (!hasStarted()) return 0;
+  if (!hasStarted()) {
+    #ifdef DEBUG
+    Serial.println("No scale present. Returning 0");
+    #endif  
+    return 0;
+  };
   for (uint8_t i=0; i<15; i++) {
     _values[i] = _scale.read();
   };
@@ -83,7 +104,12 @@ long NeoBeeScale::readMedian() {
 }
 
 long NeoBeeScale::readMedAvg() {
-  if (!hasStarted()) return 0;
+  if (!hasStarted()) {
+    #ifdef DEBUG
+      Serial.println("No scale present. Returning 0");
+      #endif
+      return 0;
+  };
   for (uint8_t i=0; i<15; i++) {
     _values[i] = _scale.read();
   };
@@ -92,7 +118,12 @@ long NeoBeeScale::readMedAvg() {
 }
 
 double NeoBeeScale::readPrecise(uint8_t ntimes) {
-  if (!hasStarted()) return 0.0f;
+  if (!hasStarted()) {
+    #ifdef DEBUG
+    Serial.println("No scale present. Returning 0.0");
+    #endif
+    return 0.0f;
+  };
   long raw = 0;
   for (uint8_t i=0; i<ntimes; i++) {
       raw += readMedian();
@@ -101,7 +132,12 @@ double NeoBeeScale::readPrecise(uint8_t ntimes) {
 }
 
 bool NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
-  if (!hasStarted()) return false;
+  if (!hasStarted()) {
+    #ifdef DEBUG
+    Serial.println("No scale present. Returning false");
+    #endif
+    return false;
+  };
   
   if (ntimes == 0) {
     #ifdef DEBUG
@@ -123,7 +159,12 @@ bool NeoBeeScale::calibrate(uint16_t reference_weight, uint8_t ntimes) {
 }
 
 void NeoBeeScale::tare(uint8_t ntimes) {
-  if (!hasStarted()) return;
+  if (!hasStarted()) {
+    #ifdef DEBUG
+    Serial.println("No scale present. Taring not possible.");
+    #endif
+    return;
+  };
   
   double raw = ntimes > 1 ? readPrecise(ntimes) : readMedian();
   #ifdef DEBUG
