@@ -83,6 +83,7 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     String tmpPassword = NbMqtt.getPassword();
 
     client.setServer(tmpHostName.c_str(), NbMqtt.port);
+    
     //client.setServer("192.168.178.77", 1883);
     #ifdef DEBUG
     if (!NbMqtt.loginSet()) Serial.print("No Login. ");
@@ -106,9 +107,18 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
             client.connect(
                 clientId.c_str(), 
                 tmpLogin.c_str(), 
-                tmpPassword.c_str());
+                tmpPassword.c_str(),
+                "/neobee/hive/disconnect",
+                0, /* Last will QoS */
+                1, /* Last will retain */
+                WiFi.macAddress().c_str());
         } else {
-            client.connect(clientId.c_str());
+            client.connect(
+                clientId.c_str(),
+                "/neobee/hive/disconnect",
+                0, /* Last will QoS */
+                1, /* Last will retain */
+                WiFi.macAddress().c_str());
         };
     };
     #ifdef DEBUG

@@ -4,8 +4,8 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#define LOADCELL_DOUT_PIN D2
-#define LOADCELL_SCK_PIN  D3
+#define LOADCELL_DOUT_PIN D3
+#define LOADCELL_SCK_PIN  D2
 #define REFERENCE_WEIGHT  1550.0f
 
 #include <OneWire.h>

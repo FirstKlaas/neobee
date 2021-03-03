@@ -232,23 +232,23 @@ class NeoBeeShell:
 
     def _send(self):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         requestcommand = self.command
         try:
             self._socket.send(self._buffer)
             self._receive()
         except:
-            raise NetworkError()
+            raise NetworkError("Network error")
 
         if requestcommand != self.command:
-            raise WrongResponseCommandError()
+            raise WrongResponseCommandError("Response command does not match request command.")
 
         if self.status == StatusCode.BAD_REQUEST:
-            raise BadRequestError()
+            raise BadRequestError("Bad request")
 
         if self.status == StatusCode.BAD_METHOD:
-            raise BadMethodError()
+            raise BadMethodError("Bad method")
 
     def _print_buffer(self):
         print(":".join("{:02x}".format(x) for x in self._buffer))
@@ -284,7 +284,7 @@ class NeoBeeShell:
         """
         Returns a `NeoBeeInfo` object, which contains all the current
         settings.
-        """ 
+        """
         if not self.connected:
             raise NotConnectedError()
 
@@ -374,7 +374,7 @@ class NeoBeeShell:
         Float property for the scale factor.
         """
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.method = RequestMethod.GET
@@ -390,7 +390,7 @@ class NeoBeeShell:
     @scale_factor.setter
     def scale_factor(self, value: float):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         if value <= 0:
             raise BadRequestError("Factor must be a positive value.")
@@ -412,7 +412,7 @@ class NeoBeeShell:
         of the board.
         """
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.method = RequestMethod.GET
@@ -434,21 +434,21 @@ class NeoBeeShell:
         a DataError is raised.
         """
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.method = RequestMethod.GET
         self.command = CmdCode.NAME
         self._send()
         if self.status == StatusCode.OK:
-            return bytearray(filter(lambda x: x is not 0, self._buffer[2:])).decode("ascii")
+            return bytearray(filter(lambda x: x != 0, self._buffer[2:])).decode("ascii")
         else:
             return None
 
     @name.setter
     def name(self, name: str):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.method = RequestMethod.PUT
@@ -467,7 +467,7 @@ class NeoBeeShell:
         Stores the settings to the flash memory.
         """
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.command = CmdCode.SAVE_SETTINGS
@@ -479,7 +479,7 @@ class NeoBeeShell:
         After a reboot, the board acts as a AP again.
         """
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.command = CmdCode.ERASE_SETTINGS
@@ -487,7 +487,7 @@ class NeoBeeShell:
 
     def reset_settings(self):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.command = CmdCode.RESET_SETTINGS
@@ -499,7 +499,7 @@ class NeoBeeShell:
         String property for the ssid of the wifi network.
         """
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.method = RequestMethod.GET
@@ -513,7 +513,7 @@ class NeoBeeShell:
     @ssid.setter
     def ssid(self, val: str):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.command = CmdCode.SSID
@@ -545,7 +545,7 @@ class NeoBeeShell:
     @wifi_password.setter
     def wifi_password(self, password: str):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.command = CmdCode.PASSWORD
@@ -560,7 +560,7 @@ class NeoBeeShell:
     @property
     def deep_sleep_seconds(self):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.method = RequestMethod.GET
@@ -571,7 +571,7 @@ class NeoBeeShell:
     @deep_sleep_seconds.setter
     def deep_sleep_seconds(self, val: int):
         if not self.connected:
-            raise NotConnectedError()
+            raise NotConnectedError("Not connected")
 
         self._clearbuffer()
         self.method = RequestMethod.PUT
@@ -586,7 +586,7 @@ class NeoBeeShell:
         """
         Reads the temperature of both sensors. Returns the temperature
         as a float value in celsius degree.
-        """ 
+        """
         self._clearbuffer()
         self.method = RequestMethod.GET
         self.command = CmdCode.GET_TEMPERATURE
@@ -625,15 +625,17 @@ class NeoBeeShell:
 
         Put a weight of 1 kilogramm onto the scale. If you now call this method
         with a ref_weight of 1, all measurements are done in kilogramm. If you call
-        this method with a value of 1000, all measurements are done in gramm. 
+        this method with a value of 1000, all measurements are done in gramm.
         """
+        if not self.scale_offset:
+            raise BadRequestError("Scale not tared or not present.")
+
         self._clearbuffer()
         self.method = RequestMethod.GET
         self.command = CmdCode.CALIBRATE
         self[0] = (ref_weight >> 8) & 0xFF
         self[1] = ref_weight & 0xFF
         self[2] = count & 0xFF
-        self._print_buffer()
         self._send()
         offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
         factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100

@@ -56,7 +56,13 @@ def command_line():
                 print(".".join(format(x) for x in shell.version))
 
             if args.tare:
-                print(shell.tare(args.count)[0])
+                offset = shell.tare(args.count)[0]
+                if not offset:
+                    raise NeoBeeError("Scale not present. Taring not possible.")
+
+                if args.save:
+                    shell.scale_offset = offset
+                    shell.save_settings()
 
             if args.calibrate:
                 print(shell.calibrate(args.calibrate, args.count)[1])
