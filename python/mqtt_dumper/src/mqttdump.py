@@ -4,7 +4,6 @@ to a human readable form.
 
 Copyright FirstKlaas 2021
 """
-
 import paho.mqtt.client as mqtt
 
 
