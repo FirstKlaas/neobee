@@ -1,8 +1,10 @@
 #include "neobeeMqtt.h"
 #include "neobeeUtil.h"
+#include "neobeeVersion.h"
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -110,14 +112,14 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
                 tmpPassword.c_str(),
                 "/neobee/hive/disconnect",
                 0, /* Last will QoS */
-                1, /* Last will retain */
+                0, /* Last will retain */
                 WiFi.macAddress().c_str());
         } else {
             client.connect(
                 clientId.c_str(),
                 "/neobee/hive/disconnect",
                 0, /* Last will QoS */
-                1, /* Last will retain */
+                0, /* Last will retain */
                 WiFi.macAddress().c_str());
         };
     };
@@ -128,15 +130,24 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     if (client.connected()) {
         uint8_t* bufferPtr(getBuffer());
         uint32_t ip = uint32_t(WiFi.localIP());
-
+        uint8_t version[] = {9,9,9}; 
+        
         // Clearing out the buffer
         memset(bufferPtr,0,bufferSize());
         // Storing the MAC address in the first six bytes
         WiFi.macAddress(bufferPtr);
         bufferPtr += 6;
-        // Storing the IP in the next four bytes 
+        // Storing the IP in the next four bytes
+        version[0] = MAJOR_VERSION;
+        version[1] = MINOR_VERSION;
+        version[2] = BUILD_VERSION;
         memcpy(bufferPtr, &ip, 4);
         bufferPtr += 4;
+
+        // First Test to write the firmware version
+        memcpy(bufferPtr, version, 3);
+        bufferPtr += 3;
+
         // Storing the name in the next 20 bytes
         printByteArray(m_ctx.name, 20);
         memcpy(bufferPtr, m_ctx.name, 20);
@@ -144,7 +155,7 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
         #ifdef DEBUG
         Serial.println("Connected. Publishing connect message.");
         #endif
-        client.publish("/neobee/hive/connect", getBuffer(), bufferPtr - getBuffer(), true);
+        client.publish("/neobee/hive/connect", getBuffer(), bufferPtr - getBuffer(), false);
 
     } else {
         #ifdef DEBUG

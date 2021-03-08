@@ -15,6 +15,7 @@ from models.board import BoardModel
 
 logger = logging.getLogger(__name__)
 
+
 async def init_models():
     # Here we connect to a SQLite DB file.
     # also specify the app name of "models"
@@ -28,6 +29,7 @@ async def init_models():
     logger.debug("Generating schema")
     await Tortoise.generate_schemas()
 
+
 async def mqtt_connect_forever(client: aio_mqtt.Client) -> None:
     while True:
         try:
@@ -40,14 +42,38 @@ async def mqtt_connect_forever(client: aio_mqtt.Client) -> None:
             logger.error("MQTT Connection lost.", exc_info=e)
 
 
-async def handle_message(client: aio_mqtt.Client):
+async def create_or_update_board(payload):
+    board_defaults = {}
+    mac = ":".join([hex(b)[2:4].upper() for b in payload[:6]])
+    board_defaults["ip"] = ".".join(
+        [str(b).zfill(3) for b in payload[6:10]])
+    try:
+        index = payload[13:33].index(0)
+    except ValueError:
+        index = 20
+
+    board_defaults["firmware"] = f"{payload[10]}.{payload[11]}.{payload[12]}"
+    board_defaults["name"] = bytearray(payload[13:13+index]).decode()
+    logger.warn("Data: %r", board_defaults)
+    board, created = await BoardModel.get_or_create(board_defaults, mac=mac)
+    if not created:
+        logger.info("Board already exists. Needs to be updated.")
+        logger.info("Changing firmware from %s to %s.", board.firmware, board_defaults["firmware"])
+        board.firmware = board_defaults["firmware"]
+        await board.save()
+
+    logger.info("Board new created: %r", created)
+
+
+async def handle_message(client: aio_mqtt.Client, loop):
     async for message in client.delivered_messages("#"):
         while True:
             try:
                 logger.debug(message.topic_name)
                 if message.topic_name == "/neobee/hive/connect":
                     logger.info("New Board connected")
-                    
+                    loop.create_task(create_or_update_board(message.payload))
+
             except aio_mqtt.ConnectionClosedError as e:
                 await client.wait_for_connect()
                 continue
@@ -56,7 +82,6 @@ async def handle_message(client: aio_mqtt.Client):
                 logger.error("Unable to handle messages.", exc_info=e)
 
             break
-
 
 async def close(client: aio_mqtt.Client, tasks) -> None:
     for task in tasks:
@@ -80,32 +105,32 @@ def on_message(client, userdata, message):
         return a * 8 + b
 
     if message.topic == "/neobee/hive/disconnect":
-        logger.debug("Device disconnected: ", message.payload)
+        logger.debug("Device disconnected: %s", message.payload)
     elif message.topic == "/neobee/hive/connect":
         logger.debug("Device connected:")
     elif message.topic == "/neobee/hive/rawdata":
         logger.debug("New data")
         mac = ":".join([hex(b)[2:4].upper() for b in message.payload[:6]])
-        logger.debug("Mac Address: ", mac)
+        logger.debug("Mac Address: %s", mac)
         from functools import reduce
 
         weight = reduce(lambda a, b: a * 8 + b, message.payload[6:10]) / 100
-        logger.debug("Weight: ", weight)
+        logger.debug("Weight: %s", weight)
 
     else:
-        print("Unhandled topic ", message.topic)
+        logger.debug("Unhandled topic %s", message.topic)
 
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level='DEBUG'
+        level='INFO'
     )
     loop = aio.new_event_loop()
     client = aio_mqtt.Client(loop=loop)
+    loop.run_until_complete(init_models())
     tasks = [
         loop.create_task(mqtt_connect_forever(client)),
-        loop.create_task(handle_message(client)),
-        loop.create_task(init_models()),
+        loop.create_task(handle_message(client, loop)),
     ]
     try:
         loop.run_forever()

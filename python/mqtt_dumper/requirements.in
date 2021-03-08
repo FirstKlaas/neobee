@@ -1,3 +1,4 @@
 aio-mqtt
 tortoise-orm
 asyncpg
+influxdb-client

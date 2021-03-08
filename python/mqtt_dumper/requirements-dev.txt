@@ -20,14 +20,19 @@ asyncpg==0.22.0
     # via -r requirements.txt
 attrs==20.3.0
     # via pytest
+autopep8==1.5.5
+    # via -r requirements-dev.in
 bandit==1.7.0
     # via -r requirements-dev.in
-black==20.8b1 ; python_version >= "3.6"
+black==20.8b1 ; python_version >= "3.8"
     # via -r requirements-dev.in
 bleach==3.3.0
     # via readme-renderer
 certifi==2020.12.5
-    # via requests
+    # via
+    #   -r requirements.txt
+    #   influxdb-client
+    #   requests
 cffi==1.14.5
     # via cryptography
 chardet==4.0.0
@@ -75,6 +80,8 @@ idna==2.10
     # via requests
 importlib-metadata==3.7.2
     # via keyring
+influxdb-client==1.15.0
+    # via -r requirements.txt
 iniconfig==1.1.1
     # via pytest
 iso8601==0.1.14
@@ -129,7 +136,9 @@ py==1.10.0
     #   pytest
     #   tox
 pycodestyle==2.6.0
-    # via flake8
+    # via
+    #   autopep8
+    #   flake8
 pycparser==2.20
     # via cffi
 pyflakes==2.2.0
@@ -148,9 +157,14 @@ pypika==0.44.1
     #   tortoise-orm
 pytest==6.2.2
     # via -r requirements-dev.in
+python-dateutil==2.8.1
+    # via
+    #   -r requirements.txt
+    #   influxdb-client
 pytz==2020.5
     # via
     #   -r requirements.txt
+    #   influxdb-client
     #   tortoise-orm
 pyyaml==5.4.1
     # via bandit
@@ -167,13 +181,20 @@ requests==2.25.1
     #   twine
 rfc3986==1.4.0
     # via twine
+rx==3.1.1
+    # via
+    #   -r requirements.txt
+    #   influxdb-client
 secretstorage==3.3.1
     # via keyring
 six==1.15.0
     # via
+    #   -r requirements.txt
     #   bandit
     #   bleach
+    #   influxdb-client
     #   nose2
+    #   python-dateutil
     #   readme-renderer
     #   tox
     #   virtualenv
@@ -185,6 +206,7 @@ testfixtures==6.17.1
     # via flake8-isort
 toml==0.10.2
     # via
+    #   autopep8
     #   black
     #   pylint
     #   pytest
@@ -210,7 +232,10 @@ typing-extensions==3.7.4.3
 unidecode==1.2.0
     # via green
 urllib3==1.26.3
-    # via requests
+    # via
+    #   -r requirements.txt
+    #   influxdb-client
+    #   requests
 virtualenv==20.4.2
     # via tox
 webencodings==0.5.1

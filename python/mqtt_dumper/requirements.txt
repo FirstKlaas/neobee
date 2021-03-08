@@ -10,13 +10,32 @@ aiosqlite==0.16.1
     # via tortoise-orm
 asyncpg==0.22.0
     # via -r requirements.in
+certifi==2020.12.5
+    # via influxdb-client
+influxdb-client==1.15.0
+    # via -r requirements.in
 iso8601==0.1.14
     # via tortoise-orm
 pypika==0.44.1
     # via tortoise-orm
+python-dateutil==2.8.1
+    # via influxdb-client
 pytz==2020.5
-    # via tortoise-orm
+    # via
+    #   influxdb-client
+    #   tortoise-orm
+rx==3.1.1
+    # via influxdb-client
+six==1.15.0
+    # via
+    #   influxdb-client
+    #   python-dateutil
 tortoise-orm==0.16.21
     # via -r requirements.in
 typing-extensions==3.7.4.3
     # via aiosqlite
+urllib3==1.26.3
+    # via influxdb-client
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
