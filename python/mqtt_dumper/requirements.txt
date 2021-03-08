@@ -4,5 +4,19 @@
 #
 #    make up
 #
-paho-mqtt==1.5.1
+aio-mqtt==0.2.0
     # via -r requirements.in
+aiosqlite==0.16.1
+    # via tortoise-orm
+asyncpg==0.22.0
+    # via -r requirements.in
+iso8601==0.1.14
+    # via tortoise-orm
+pypika==0.44.1
+    # via tortoise-orm
+pytz==2020.5
+    # via tortoise-orm
+tortoise-orm==0.16.21
+    # via -r requirements.in
+typing-extensions==3.7.4.3
+    # via aiosqlite

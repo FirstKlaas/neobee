@@ -10,7 +10,7 @@ pylint
 docutils
 pygments
 bandit
-black;python_version>="3.6"
+black;python_version>="3.8"
 
 # Test tools
 tox
@@ -18,6 +18,8 @@ green
 coveralls
 pytest
 nose2
+
+autopep8
 
 # Pypi
 twine

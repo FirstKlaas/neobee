@@ -1,1 +1,3 @@
-paho-mqtt
+aio-mqtt
+tortoise-orm
+asyncpg
