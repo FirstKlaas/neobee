@@ -144,7 +144,7 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
         #ifdef DEBUG
         Serial.println("Connected. Publishing connect message.");
         #endif
-        client.publish("/neobee/hive/connect", getBuffer(), bufferPtr - getBuffer());
+        client.publish("/neobee/hive/connect", getBuffer(), bufferPtr - getBuffer(), true);
 
     } else {
         #ifdef DEBUG

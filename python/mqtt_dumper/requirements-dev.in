@@ -1,0 +1,25 @@
+-r requirements.txt
+
+# Administration tools
+pip-tools
+
+# Linter tools
+mypy
+flake8-isort
+pylint
+docutils
+pygments
+bandit
+black;python_version>="3.6"
+
+# Test tools
+tox
+green
+coveralls
+pytest
+nose2
+
+# Pypi
+twine
+
+

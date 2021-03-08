@@ -73,10 +73,25 @@ float NeoBeeTemperature::getCTemperatureByIndex(const uint8_t index) {
     if (sensors.getDeviceCount() == 0) {
       #ifdef DEBUG
       Serial.println("No temperature sensors present. Ignoring call and returning 0.");
-      return 0.0f;
       #endif
+      return 0.0f;
+    }
+
+    if (index >= sensors.getDeviceCount()) {
+      #ifdef DEBUG
+      Serial.println("Requested temperature: Index to high. No such sensor.");
+      #endif
+      return 0.0f;
     }
 
     sensors.requestTemperatures();
+    
+    #ifdef DEBUG
+    Serial.print("Temperature for index ");
+    Serial.print(index);
+    Serial.print(": ");
+    Serial.println(sensors.getTempCByIndex(index));
+    #endif
+
     return sensors.getTempCByIndex(index);
 }
