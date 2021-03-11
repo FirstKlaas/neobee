@@ -30,6 +30,8 @@ class NeoBeeMqtt
 
     bool isConnected();
 
+    void loop();
+
 
   private:
     uint8_t* m_buffer;

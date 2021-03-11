@@ -22,7 +22,7 @@ DeviceAddress insideThermometer, outsideThermometer;
 
 
 NeoBeeTemperature::NeoBeeTemperature(Context &ctx):
-m_ctx(ctx), m_has_started(false)
+m_ctx(ctx), m_has_started(false), sensor_count(0)
 {
 }
 
@@ -30,6 +30,7 @@ NeoBeeTemperature::~NeoBeeTemperature() {
 }
 
 void NeoBeeTemperature::begin() {
+
   if (m_has_started) return;
   m_has_started = true;
 
@@ -37,24 +38,27 @@ void NeoBeeTemperature::begin() {
     Serial.println("Starting DS18B20");
   #endif
 
+  // Clear flags
+  m_ctx.temperature.flags = 0;
+
   sensors.begin();
   delay(200);
-  // Todo: Muss ich das noch machen, wenn ich einmal die Adressen gefunden habe?
-  // Wenn die Adressen einmal ermittelt wurden, sind diese im context hinterlegt.
-  // Was ist, wenn der zweite Sensor nicht angeschlossen ist? Dann wäre das Flag nicht
-  // gesetzt und man wuerde hier erneut versuchen, die Adressen zu ermitteln.
-  //bitWrite(m_ctx.flags, FLAG_ADDR_INSIDE_SET, sensors.getAddress(m_ctx.temperature.addr_inside, 0));
-  //bitWrite(m_ctx.flags, FLAG_ADDR_OUTSIDE_SET, sensors.getAddress(m_ctx.temperature.addr_outside, 1));
-  //sensors.getAddress(m_ctx.temperature.addr_inside, 0);
-  //sensors.getAddress(m_ctx.temperature.addr_outside, 1);
+  
+  // Search for the first device
+  if (oneWire.search(m_ctx.temperature.addr_inside)) {
+    sensor_count++;
+    if (oneWire.search(m_ctx.temperature.addr_outside)) {
+      sensor_count++;
+    } 
+  }
+
+  oneWire.reset_search();
   
   #ifdef DEBUG
   Serial.print("Device count ");
-  Serial.println(sensors.getDeviceCount());
-  oneWire.search(m_ctx.temperature.addr_inside);
-  oneWire.search(m_ctx.temperature.addr_outside);
-  oneWire.reset_search();
-  if (sensors.getDeviceCount() > 0) {
+  Serial.println(sensor_count);
+  
+  if (sensor_count > 0) {
     printByteArray(m_ctx.temperature.addr_inside,8);
     printByteArray(m_ctx.temperature.addr_outside,8);
   } else {
@@ -65,7 +69,22 @@ void NeoBeeTemperature::begin() {
 }
 
 uint8_t NeoBeeTemperature::getDeviceCount() {
-  return sensors.getDS18Count();
+  return sensor_count;
+  //return sensors.getDS18Count();
+}
+
+float NeoBeeTemperature::getCTemperatureInside() {
+  if (sensor_count == 0) return 0.0;
+  float temp(sensors.getTempC(m_ctx.temperature.addr_inside));
+  if (temp == 85.0) return 0.0;
+  return temp;
+}
+
+float NeoBeeTemperature::getCTemperatureOutside() {
+  if (sensor_count < 2) return 0.0;
+  float temp(sensors.getTempC(m_ctx.temperature.addr_outside));
+  if (temp == 85.0) return 0.0;
+  return temp;
 }
 
 float NeoBeeTemperature::getCTemperatureByIndex(const uint8_t index) {

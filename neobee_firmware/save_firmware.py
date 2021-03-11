@@ -17,4 +17,5 @@ def copy_firmware():
     copyfile(".pio/build/wemos_release/firmware.bin", f"firmware/neobee_wemos_{version_string}.bin")
 
 if __name__ == "__main__":
+    print(f"Building version {version}")
     copy_firmware()

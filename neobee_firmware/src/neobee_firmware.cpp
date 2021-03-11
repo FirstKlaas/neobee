@@ -180,10 +180,25 @@ void loop() {
         if (millis() - currentMillis >= 5000) {
             currentMillis = millis();
             if (mqtt.isConnected()) {
-            #ifdef DEBUG
-            Serial.println("Measure, publish and delay");
-            #endif
-            mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
+                #ifdef DEBUG
+                Serial.println("Measure, publish and delay");
+                #endif
+                /**
+                mqtt.publishData(
+                    scale.getWeight(),
+                    temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
+                **/
+                mqtt.publishData(
+                    scale.getWeight(),
+                    temperature.getCTemperatureInside(),
+                    temperature.getCTemperatureOutside());
+
+                mqtt.loop();
+                #ifdef DEBUG
+                Serial.print("Free Heap           : ");
+                Serial.print(ESP.getFreeHeap(),DEC);
+                Serial.println(" bytes");
+                #endif
             }
         } 
     };

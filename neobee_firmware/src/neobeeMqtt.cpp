@@ -130,22 +130,20 @@ bool NeoBeeMqtt::connect(uint8_t number_of_tries) {
     if (client.connected()) {
         uint8_t* bufferPtr(getBuffer());
         uint32_t ip = uint32_t(WiFi.localIP());
-        uint8_t version[] = {9,9,9}; 
         
         // Clearing out the buffer
         memset(bufferPtr,0,bufferSize());
         // Storing the MAC address in the first six bytes
         WiFi.macAddress(bufferPtr);
         bufferPtr += 6;
-        // Storing the IP in the next four bytes
-        version[0] = MAJOR_VERSION;
-        version[1] = MINOR_VERSION;
-        version[2] = BUILD_VERSION;
         memcpy(bufferPtr, &ip, 4);
         bufferPtr += 4;
 
         // First Test to write the firmware version
-        memcpy(bufferPtr, version, 3);
+        // Storing the IP in the next four bytes
+        bufferPtr[0] = MAJOR_VERSION;
+        bufferPtr[1] = MINOR_VERSION;
+        bufferPtr[2] = BUILD_VERSION;
         bufferPtr += 3;
 
         // Storing the name in the next 20 bytes
@@ -197,18 +195,31 @@ size_t NeoBeeMqtt::bufferSize() const {
 void NeoBeeMqtt::publishData(float weight, float tempInside, float tempOutside) {
     uint8_t* bufferPtr(getBuffer());
 
-    WiFi.macAddress(bufferPtr);
-    bufferPtr += 6;
-    writeFloat100(weight, bufferPtr);
-    bufferPtr += 4;
-    writeFloat100(tempInside, bufferPtr);
-    bufferPtr += 4;
-    writeFloat100(tempOutside, bufferPtr);
-    bufferPtr += 4;
-    client.publish("/neobee/hive/rawdata", getBuffer(), 18);
-    #ifdef DEBUG
-    Serial.println("Topic: /neobee/hive/rawdata");
-    printByteArray(getBuffer(), 18);
-    #endif
-    memset(getBuffer(),0,18);
+    if (connect()) {
+        WiFi.macAddress(bufferPtr);
+        bufferPtr += 6;
+        writeFloat100(weight, bufferPtr);
+        bufferPtr += 4;
+        writeFloat100(tempInside, bufferPtr);
+        bufferPtr += 4;
+        writeFloat100(tempOutside, bufferPtr);
+        bufferPtr += 4;
+        client.publish("/neobee/hive/rawdata", getBuffer(), 18);
+        #ifdef DEBUG
+        Serial.println("mqtt publish: /neobee/hive/rawdata");
+        printByteArray(getBuffer(), 18);
+        Serial.print("Weight              : ");
+        Serial.println(weight);
+        Serial.print("Temperature Inside  : ");
+        Serial.println(tempInside);
+        Serial.print("Temperature Outside : ");
+        Serial.println(tempOutside);
+        
+        #endif
+        memset(getBuffer(),0,18);
+    }
+}
+
+void NeoBeeMqtt::loop() {
+    if (connect()) client.loop();
 }

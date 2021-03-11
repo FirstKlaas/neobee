@@ -2,3 +2,4 @@ aio-mqtt
 tortoise-orm
 asyncpg
 influxdb-client
+python-dotenv

@@ -3,11 +3,25 @@
 #include <Arduino.h>
 
 
-void writeInt32(uint32_t value, uint8_t* dst) {
-    dst[0] = (value >> 24) & 0xff;
-    dst[1] = (value >> 16) & 0xff;
-    dst[2] = (value >> 8) & 0xff;
-    dst[3] = value & 0xff;
+void writeInt32(int32_t value, uint8_t* dst) {
+  boolean NEGFLAG(value < 0);
+
+  // If value is negative, write the
+  // positive value and set the negative
+  // flag
+  if (NEGFLAG) {
+    value *= -1;
+  } 
+  dst[0] = (value >> 24) & 0xff;
+  dst[1] = (value >> 16) & 0xff;
+  dst[2] = (value >> 8) & 0xff;
+  dst[3] = value & 0xff;
+  // If the original value was negative, 
+  // set the highest bit to one to 
+  // indicate a negative value.
+  if (NEGFLAG) {
+    dst[0] |= 0b10000000;
+  }
 }
 
 String stringFromByteAray(const uint8_t* src, const uint8_t size) {

@@ -161,6 +161,8 @@ python-dateutil==2.8.1
     # via
     #   -r requirements.txt
     #   influxdb-client
+python-dotenv==0.15.0
+    # via -r requirements.txt
 pytz==2020.5
     # via
     #   -r requirements.txt
