@@ -57,8 +57,7 @@ def command_line():
 
             if args.tare:
                 offset = shell.tare(args.count)[0]
-                if not offset:
-                    raise NeoBeeError("Scale not present. Taring not possible.")
+                print(f"Offset: {offset}")
 
                 if args.save:
                     shell.scale_offset = offset

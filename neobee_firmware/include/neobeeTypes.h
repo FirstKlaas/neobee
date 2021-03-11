@@ -98,7 +98,7 @@ typedef struct {
   inline float getFactor() { return factor; };
   inline uint8_t getGain() { return gain; };
 
-  inline void setOffset(double new_offset) { offset = std::max(new_offset, 0.);  };
+  inline void setOffset(double new_offset) { offset = new_offset;  };
   inline void setFactor(float new_factor) { factor = std::max(new_factor, 0.f);  };
   inline void setGain(uint8_t new_gain) { gain = new_gain; };
 

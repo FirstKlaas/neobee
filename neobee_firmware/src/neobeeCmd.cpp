@@ -202,10 +202,17 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
             #endif
             if (m_data_space[0] == 0) {
                 clearBuffer(CmdCode::TARE, StatusCode::BAD_REQUEST);
+                #ifdef DEBUG 
+                Serial.println("Bad Request");
+                #endif
+            } else if (!m_scale.hasStarted()) {
+                #ifdef DEBUG 
+                Serial.println("Scale not started. Bad Request");
+                #endif
+                clearBuffer(CmdCode::TARE, StatusCode::BAD_REQUEST);
             } else {
-                m_scale.begin();
+                //m_scale.begin();
                 m_scale.tare(m_data_space[0]);
-                
                 clearBuffer(CmdCode::TARE, StatusCode::OK);
                 writeDouble100(m_scale.getOffset(), m_data_space);
                 writeFloat100(m_scale.getFactor(), m_data_space+4);

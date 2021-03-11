@@ -20,6 +20,7 @@ from .error import NeoBeeError
 __ALL__ = ["NeoBeeShell"]
 
 
+
 class CmdCode(IntEnum):
     NOP = 0
     NAME = 1
@@ -306,9 +307,19 @@ class NeoBeeShell:
         return info
 
     def _read_float(self, index: int = 0) -> float:
-        return (
-            (self[index] << 24) | (self[index + 1] << 16) | (self[index + 2] << 8) | self[index + 3]
-        ) / 100.0
+        """
+        Decodes a four bytes encoded signed float
+        value.
+        The highest bit of the first byte indicates
+        wether the value is negative (1) or not (0).
+        """
+        NEG_FLAG = self[0] & 0b10000000
+        # Clear the negative flag
+        self._print_buffer()
+        value = (((self[index] & 0b01111111) << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3])
+        if NEG_FLAG:
+            return (-1 * value) / 100.0
+        return value / 100.0
 
     @property
     def method(self) -> RequestMethod:
@@ -344,7 +355,7 @@ class NeoBeeShell:
         self._send()
 
         if self.status == StatusCode.OK:
-            return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+            return self._read_float()
         elif self.status == StatusCode.NOT_FOUND:
             return None
         else:
@@ -381,7 +392,7 @@ class NeoBeeShell:
         self.command = CmdCode.SCALE_FACTOR
         self._send()
         if self.status == StatusCode.OK:
-            return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+            return self._read_float()
         elif self.status == StatusCode.NOT_FOUND:
             return None
         else:
@@ -591,7 +602,7 @@ class NeoBeeShell:
         self.method = RequestMethod.GET
         self.command = CmdCode.GET_TEMPERATURE
         self._send()
-        return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+        return self._read_float()
 
     def tare(self, nr_times: int):
         """
@@ -609,8 +620,8 @@ class NeoBeeShell:
         self.command = CmdCode.TARE
         self[0] = nr_times & 0xFF
         self._send()
-        offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
-        factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100
+        offset = self._read_float()
+        factor = self._read_float(index=4)
         return (offset, factor)
 
     def calibrate(self, ref_weight: int, count: int):
@@ -637,8 +648,8 @@ class NeoBeeShell:
         self[1] = ref_weight & 0xFF
         self[2] = count & 0xFF
         self._send()
-        offset = ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
-        factor = ((self[4] << 24) | (self[5] << 16) | (self[6] << 8) | self[7]) / 100
+        offset = self._read_float()
+        factor = self._read_float(index=4)
         return (offset, factor)
 
     @property
@@ -740,7 +751,7 @@ class NeoBeeShell:
         self.command = CmdCode.GET_WEIGHT
         self[0] = 1
         self._send()
-        return ((self[0] << 24) | (self[1] << 16) | (self[2] << 8) | self[3]) / 100
+        return self._read_float()
 
     def reset(self):
         self._clearbuffer()

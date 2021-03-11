@@ -41,6 +41,9 @@ bool NeoBeeScale::begin() {
     _has_started = true;
     _scale.set_offset(m_ctx.scale.offset);
     _scale.set_scale(m_ctx.scale.factor);
+    #ifdef DEBUG
+    Serial.println("Scale started successfully.");
+    #endif
     return true;
   };
 

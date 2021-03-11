@@ -2,12 +2,14 @@
 
 ## Dependencies
 
-- OnewWire
+- OnewWire@3.3.5
 - DallasTemperature@3.9.1
 - bogde/HX711@0.7.4
 - PubSubClient@2.8
 
 ## Changes
+- If no scale is present, the tare command returns BAD_REQUEST
+- Offset can be negative. Until now only positive values have been stored. This is fixed.
 
 # Version 0.1.6
 

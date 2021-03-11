@@ -162,6 +162,24 @@ void setup() {
     // to give feedback ti the user, that we are in
     // command mode.
     statusLed.switchOn();
+
+    #ifdef DEBUG
+    Serial.print("Operation mode is: ");
+    switch (mode)
+    {
+    case OperationMode::CMD_MODE:
+        Serial.println("COMMAND_MODE");
+        break;
+
+    case OperationMode::IOT_MODE:
+        Serial.println("IOT_MODE");
+        break;
+
+    default:
+        break;
+    }
+    #endif
+
 };
 
 void loop() {
@@ -169,6 +187,7 @@ void loop() {
 
     // If we are in command mode check for 
     // new commands.
+    
     if (mode == OperationMode::CMD_MODE) {
         cmd.checkForCommands();
     }

@@ -10,8 +10,8 @@ release:
 	@echo Cleaning Up
 	@echo =================================
 	pio run -t clean -s
-	
-	@echo =================================
+
+	@echo =================================x
 	@echo Build all versions
 	@echo =================================
 	pio run -s
