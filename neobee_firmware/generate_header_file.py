@@ -2,14 +2,22 @@ import json
 from datetime import datetime
 from shutil import copyfile
 
-data = {}
-
-with open("info.json", "r") as f:
-    data = json.load(f)
-
-version = data["version"]
 
 def generate_version_header():
+    data = {}
+
+    with open("info.json", "r") as f:
+        data = json.load(f)
+
+    version = data["version"]
+    version[2] = version[2] + 1
+    data["version"] = version
+
+    print(f"Updated to version {version}")
+
+    with open("info.json", "w") as f:
+        json.dump(data,f, indent=2)
+
     with open("include/neobeeVersion.h", "w") as f:
         f.write("/**********************************\n")
         f.write(" Auto generated file. Do not edit.\n")
