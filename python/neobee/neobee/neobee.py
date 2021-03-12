@@ -60,7 +60,6 @@ def command_line():
                 print(f"Offset: {offset}")
 
                 if args.save:
-                    shell.scale_offset = offset
                     shell.save_settings()
 
             if args.calibrate:

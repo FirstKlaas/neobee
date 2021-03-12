@@ -86,7 +86,7 @@ enum class RequestMethod : uint8_t {
 #define REQUEST_METHOD_MASK 3
 
 typedef struct {
-  double offset;                    // The offset as a result of taring the load cell
+  long offset;                    // The offset as a result of taring the load cell
   float factor;                     // Factor to be used to convert readings into units
   uint8_t gain;                     // Which channel to select.
 
@@ -94,21 +94,13 @@ typedef struct {
   inline bool hasFactor() { return factor > 0.f; };
   inline bool hasGain() { return gain > 0; };
 
-  inline double getOffset() { return offset; };
+  inline long getOffset() { return offset; };
   inline float getFactor() { return factor; };
   inline uint8_t getGain() { return gain; };
 
-  inline void setOffset(double new_offset) { offset = new_offset;  };
+  inline void setOffset(long new_offset) { offset = new_offset;  };
   inline void setFactor(float new_factor) { factor = std::max(new_factor, 0.f);  };
   inline void setGain(uint8_t new_gain) { gain = new_gain; };
-
-  inline void printOffset(uint8_t *dest) {
-    writeDouble100(getOffset(), dest);
-  }
-
-  inline void printFactor(uint8_t *dest) {
-    writeFloat100(getFactor(), dest);
-  }
 
   inline void reset() { 
     offset = 0;
@@ -124,20 +116,5 @@ typedef struct {
   DeviceAddress addr_outside;       // Address of the outside temperature sensor
 } Temperature;
 
-inline uint32_t readInt32(uint8_t* dst)
-{
-    return (dst[0] << 24) + (dst[1] << 16) + (dst[2] << 8) + (dst[3]); 
-}
-
-inline void printByteArray(const uint8_t* buffer, const uint8_t size = 32)
-{
-    #ifdef DEBUG
-    for (uint8_t i=0; i<size; i++) {
-        Serial.print(buffer[i], HEX);
-        Serial.print(":");
-    }
-    Serial.println();
-    #endif
-}
 
 #endif

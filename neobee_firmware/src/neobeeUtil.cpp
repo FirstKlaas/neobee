@@ -2,6 +2,12 @@
 
 #include <Arduino.h>
 
+void writeUInt32(uint32_t value, uint8_t* dst) {
+  dst[0] = (value >> 24) & 0xff;
+  dst[1] = (value >> 16) & 0xff;
+  dst[2] = (value >> 8) & 0xff;
+  dst[3] = value & 0xff;
+}
 
 void writeInt32(int32_t value, uint8_t* dst) {
   boolean NEGFLAG(value < 0);
@@ -22,6 +28,32 @@ void writeInt32(int32_t value, uint8_t* dst) {
   if (NEGFLAG) {
     dst[0] |= 0b10000000;
   }
+}
+
+double readDouble100(uint8_t* dst) {
+  return (double) (readInt32(dst) / 100.0);
+}
+
+float readFloat100(uint8_t* dst) {
+  return (float) (readInt32(dst) / 100.0f);
+}
+
+int32_t readInt32(uint8_t* dst)
+{
+  bool NEG_FLAG(dst[0] >> 7);
+  int32_t value(0);
+
+  value = (dst[0] & 0b01111111) << 24;
+  value |= dst[1] << 16;
+  value |= dst[2] << 8;
+  value |= dst[3];
+
+  return (double) (NEG_FLAG ? value * -1 : value);
+}
+
+inline uint32_t readUInt32(uint8_t* dst)
+{
+  return (dst[0] << 24) + (dst[1] << 16) + (dst[2] << 8) + (dst[3]); 
 }
 
 String stringFromByteAray(const uint8_t* src, const uint8_t size) {

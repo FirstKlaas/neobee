@@ -306,6 +306,21 @@ class NeoBeeShell:
 
         return info
 
+    def _write_float(self, value: float, index: int = 0) -> None:
+        iValue = int(value * 100)
+        NEG_FLAG = (value < 0)
+        if NEG_FLAG:
+            iValue *= -1
+
+        self[index] = (iValue >> 24) & 0xFF
+        self[index+1] = (iValue >> 16) & 0xFF
+        self[index+2] = (iValue >> 8) & 0xFF
+        self[index+3] = (iValue) & 0xFF
+
+        if NEG_FLAG:
+            self[index] |= 0b10000000
+
+
     def _read_float(self, index: int = 0) -> float:
         """
         Decodes a four bytes encoded signed float
@@ -315,7 +330,6 @@ class NeoBeeShell:
         """
         NEG_FLAG = self[0] & 0b10000000
         # Clear the negative flag
-        self._print_buffer()
         value = (((self[index] & 0b01111111) << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3])
         if NEG_FLAG:
             return (-1 * value) / 100.0
@@ -366,17 +380,10 @@ class NeoBeeShell:
         if not self.connected:
             raise NotConnectedError()
 
-        if value <= 0:
-            raise BadRequestError("Offset must be a positive value.")
-
         self._clearbuffer()
         self.method = RequestMethod.PUT
         self.command = CmdCode.SCALE_OFFSET
-        iValue = int(value * 100)
-        self[0] = (iValue >> 24) & 0xFF
-        self[1] = (iValue >> 16) & 0xFF
-        self[2] = (iValue >> 8) & 0xFF
-        self[3] = (iValue) & 0xFF
+        self._write_float(value)
         self._send()
 
     @property
@@ -409,11 +416,7 @@ class NeoBeeShell:
         self._clearbuffer()
         self.method = RequestMethod.PUT
         self.command = CmdCode.SCALE_FACTOR
-        iValue = int(value * 100)
-        self[0] = (iValue >> 24) & 0xFF
-        self[1] = (iValue >> 16) & 0xFF
-        self[2] = (iValue >> 8) & 0xFF
-        self[3] = (iValue) & 0xFF
+        self._write_float(value)
         self._send()
 
     @property

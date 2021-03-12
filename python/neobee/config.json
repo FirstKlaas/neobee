@@ -1,0 +1,9 @@
+{
+  "firmware_version": "0.1.8",
+  "device_name": "Neo-01",
+  "ssid": "NebuhrHood",
+  "password": "00167340308365918150",
+  "deep_sleep_seconds": 65535,
+  "mqtt_host": "broker.hivemq.com",
+  "mqtt_port": 1883
+}

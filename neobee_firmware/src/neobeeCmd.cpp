@@ -80,8 +80,8 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     bitWrite(m_data_space[4], 2, m_ctx.scale.hasGain());
                     //TODO: Mayby encode which channels are in use in two bits
                     m_data_space[5] = m_temperature.getDeviceCount();
-                    m_ctx.scale.printOffset(m_data_space+6);
-                    m_ctx.scale.printFactor(m_data_space+10);
+                    writeInt32(m_ctx.scale.getOffset(), m_data_space+6);
+                    writeFloat100(m_ctx.scale.getFactor(), m_data_space+10);
                     break;
                     
                 default:
@@ -122,19 +122,19 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
                     if (m_scale.hasOffset()) {
-                        writeDouble100(m_scale.getOffset(), m_data_space);
+                        writeInt32(m_scale.getOffset(), m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
                     }
                     break;
 
                 case RequestMethod::PUT:
-                    m_scale.setOffset((double) (readInt32(m_data_space) / 100.f));
+                    m_scale.setOffset(readInt32(m_data_space));
                     clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
                     break;
                 
                 case RequestMethod::DELETE:
-                    m_scale.setOffset(0.);
+                    m_scale.setOffset(0);
                     clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
                     break;
 
@@ -181,7 +181,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     break;
 
                 case RequestMethod::PUT:
-                    m_scale.setFactor(readInt32(m_data_space) / 100.f);
+                    m_scale.setFactor(readFloat100(m_data_space));
                     clearBuffer(CmdCode::SCALE_FACTOR, StatusCode::OK);
                     break;
 
