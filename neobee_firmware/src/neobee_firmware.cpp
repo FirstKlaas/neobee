@@ -209,9 +209,11 @@ void loop() {
                 **/
                 mqtt.publishData(
                     scale.getWeight(),
-                    temperature.getCTemperatureInside(),
-                    temperature.getCTemperatureOutside());
-
+                    temperature.getCTemperatureByIndex(0),
+                    temperature.getCTemperatureByIndex(1));
+                    
+//                    temperature.getCTemperatureInside(),
+//                    temperature.getCTemperatureOutside());
                 mqtt.loop();
                 #ifdef DEBUG
                 Serial.print("Free Heap           : ");
