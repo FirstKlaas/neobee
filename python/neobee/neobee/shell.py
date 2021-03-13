@@ -20,7 +20,6 @@ from .error import NeoBeeError
 __ALL__ = ["NeoBeeShell"]
 
 
-
 class CmdCode(IntEnum):
     NOP = 0
     NAME = 1
@@ -308,19 +307,18 @@ class NeoBeeShell:
 
     def _write_int(self, value: int, index: int = 0) -> None:
         iValue = int(value)
-        NEG_FLAG = (value < 0)
+        NEG_FLAG = value < 0
         if NEG_FLAG:
             iValue = -1 * iValue
 
         self[index] = (iValue >> 24) & 0xFF
-        self[index+1] = (iValue >> 16) & 0xFF
-        self[index+2] = (iValue >> 8) & 0xFF
-        self[index+3] = (iValue) & 0xFF
+        self[index + 1] = (iValue >> 16) & 0xFF
+        self[index + 2] = (iValue >> 8) & 0xFF
+        self[index + 3] = (iValue) & 0xFF
 
         # set negative flag
         if NEG_FLAG:
             self[index] |= 0b10000000
-
 
     def _write_float(self, value: float, index: int = 0) -> None:
         self._write_int(int(value * 100))
@@ -337,15 +335,21 @@ class NeoBeeShell:
         """
         return self._read_int(index) / 100.0
 
-        
-    def _read_int(self, index:int=0) -> int:
+    def _read_int(self, index: int = 0) -> int:
         NEG_FLAG = self[0] & 0b10000000
         # Clear the negative flag
-        value = (((self[index] & 0b01111111) << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3])
+        value = (
+            ((self[index] & 0b01111111) << 24)
+            | (self[index + 1] << 16)
+            | (self[index + 2] << 8)
+            | self[index + 3]
+        )
         return int((-1 * value) if NEG_FLAG else value)
 
-    def _read_uint(self, index:int=0) -> int:
-        value = ((self[index] << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3])
+    def _read_uint(self, index: int = 0) -> int:
+        value = (
+            (self[index] << 24) | (self[index + 1] << 16) | (self[index + 2] << 8) | self[index + 3]
+        )
         return int(value)
 
     @property
@@ -423,7 +427,7 @@ class NeoBeeShell:
         if not self.connected:
             raise NotConnectedError("Not connected")
 
-        #if value <= 0:
+        # if value <= 0:
         #    raise BadRequestError("Factor must be a positive value.")
 
         self._clearbuffer()
