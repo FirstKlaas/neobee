@@ -118,10 +118,14 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
          Supported Methods: GET, PUT, DELETE
          ********************************************************/
         case CmdCode::SCALE_OFFSET:
+            #ifdef DEBUG 
+            Serial.println("CMD SCALE_OFFSET");
+            #endif
+            
             switch(method) {
                 case RequestMethod::GET:
                     clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
-                    if (m_scale.hasOffset()) {
+                    if (m_scale.hasStarted()) {
                         writeInt32(m_scale.getOffset(), m_data_space);
                     } else {
                         setStatus(StatusCode::NOT_FOUND);
@@ -130,6 +134,10 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
 
                 case RequestMethod::PUT:
                     m_scale.setOffset(readInt32(m_data_space));
+                    #ifdef DEBUG
+                    Serial.print("New scale_offset: ");
+                    Serial.println(readInt32(m_data_space));
+                    #endif
                     clearBuffer(CmdCode::SCALE_OFFSET, StatusCode::OK);
                     break;
                 
@@ -198,7 +206,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * Data Byte 0:  ntime. Number of times to measure
              */
             #ifdef DEBUG 
-            Serial.println("TARE Request");
+            Serial.println("CMD TARE");
             #endif
             if (m_data_space[0] == 0) {
                 clearBuffer(CmdCode::TARE, StatusCode::BAD_REQUEST);
@@ -216,6 +224,13 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 clearBuffer(CmdCode::TARE, StatusCode::OK);
                 writeDouble100(m_scale.getOffset(), m_data_space);
                 writeFloat100(m_scale.getFactor(), m_data_space+4);
+                #ifdef DEBUG 
+                Serial.print("Offset: ");
+                Serial.println(m_scale.getOffset());
+                Serial.print("Factor: ");
+                Serial.println(m_scale.getFactor());
+                #endif
+
             };            
             break;
 
@@ -233,7 +248,7 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                 uint16_t ref_weight((m_data_space[0] << 8) | m_data_space[1]);
 
                 #ifdef DEBUG 
-                Serial.println("CALIBRATE Request");
+                Serial.println("CDM CALIBRATE");
                 Serial.print("Reference weight is ");
                 Serial.println(ref_weight);
                 #endif
@@ -244,8 +259,17 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
                     m_scale.begin();
                     if (m_scale.calibrate(ref_weight, m_data_space[2])) {
                         clearBuffer(CmdCode::CALIBRATE, StatusCode::OK);
-                        writeDouble100(m_ctx.scale.getOffset(), m_data_space);
+                        writeInt32(m_ctx.scale.getOffset(), m_data_space);
                         writeFloat100(m_ctx.scale.getFactor(), m_data_space + 4);
+                    #ifdef DEBUG 
+                    Serial.print("Offset: ");
+                    Serial.println(m_scale.getOffset());
+                    Serial.print("Factor: ");
+                    Serial.println(m_scale.getFactor());
+                    Serial.print("Ref. W: ");
+                    Serial.println(ref_weight);
+                    #endif
+
                     } else {
                         clearBuffer(CmdCode::CALIBRATE, StatusCode::BAD_REQUEST);
                     };
@@ -303,15 +327,31 @@ void NeoBeeCmd::handleCommand(WiFiClient& client) {
              * 1 : Mesure Method
              */
             {
+
                 float weight;
                 uint8_t ntimes(m_data_space[0]);
                 WeightMethod weight_method(static_cast<WeightMethod>(m_data_space[1])); 
 
+                #ifdef DEBUG 
+                Serial.println("CMD WEIGHT");
+                #endif
+
                 if (ntimes == 0) {
                     clearBuffer(CmdCode::GET_WEIGHT, StatusCode::BAD_REQUEST);
+                    #ifdef DEBUG 
+                    Serial.println("Count = 0. Bad Request");
+                    #endif
                 } else {
                     clearBuffer(CmdCode::GET_WEIGHT, StatusCode::OK);
                     weight = m_scale.getWeight(ntimes, weight_method);
+                    #ifdef DEBUG 
+                    Serial.print("Offset: ");
+                    Serial.println(m_scale.getOffset());
+                    Serial.print("Factor: ");
+                    Serial.println(m_scale.getFactor());
+                    Serial.print("Weight: ");
+                    Serial.println(weight);
+                    #endif
                     writeFloat100(weight, m_data_space);            
                 };
             };

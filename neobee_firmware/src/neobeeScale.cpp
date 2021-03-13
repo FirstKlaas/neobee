@@ -63,6 +63,8 @@ float NeoBeeScale::getWeight(uint8_t ntimes, WeightMethod method) {
       return 0.0f;
     };
 
+    return _scale.get_units(ntimes);
+    /**
     switch (method) {
         case WeightMethod::Median:
             return std::max((readMedian() - getOffset()) / getFactor(), 0.);
@@ -79,6 +81,7 @@ float NeoBeeScale::getWeight(uint8_t ntimes, WeightMethod method) {
         default:
             return std::max((readMedAvg() - getOffset()) / getFactor(), 0.);
     }
+    **/
 }
 
 long NeoBeeScale::getRaw(uint8_t ntimes) {
@@ -169,21 +172,20 @@ void NeoBeeScale::tare(uint8_t ntimes) {
     return;
   };
   
-  double raw = ntimes > 1 ? readPrecise(ntimes) : readMedian();
+  //double raw = ntimes > 1 ? readPrecise(ntimes) : readMedian();
+  _scale.tare(5);
   #ifdef DEBUG
   Serial.println("___TARE___");
-  Serial.print("Raw         : ");Serial.println(raw);
-  Serial.print("Offset      : ");Serial.println(getOffset());
-  Serial.print("Factor      : ");Serial.println(getFactor());
+  Serial.print("Offset      : ");Serial.println(_scale.get_offset());
   #endif
-  setOffset(raw);
+  setOffset(_scale.get_offset());
 }
 
 double NeoBeeScale::getOffset() {
   return m_ctx.scale.getOffset();
 }
 
-void NeoBeeScale::setOffset(const double offset) {
+void NeoBeeScale::setOffset(const long offset) {
   m_ctx.scale.setOffset(offset);
   _scale.set_offset(offset);
 }

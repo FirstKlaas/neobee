@@ -90,7 +90,7 @@ typedef struct {
   float factor;                     // Factor to be used to convert readings into units
   uint8_t gain;                     // Which channel to select.
 
-  inline bool hasOffset() { return offset > 0.; };
+  inline bool hasOffset() { return true; };
   inline bool hasFactor() { return factor > 0.f; };
   inline bool hasGain() { return gain > 0; };
 

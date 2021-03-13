@@ -9,7 +9,8 @@
 
 ## Changes
 - If no scale is present, the tare command returns BAD_REQUEST
-- Offset can be negative. Until now only positive values have been stored. This is fixed.
+- Offset can be negative. Until now only positive values have been stored. This is fixed. In fact offset may not be negative, but the HX711 mixes signed and usigned long values. So tare returns an signed long which can be a large unsigned long, interpretated as negative.
+- For the time been the different calcuation methods for the weight command are disabled and the library function ``read_units`` is used. 
 
 # Version 0.1.6
 

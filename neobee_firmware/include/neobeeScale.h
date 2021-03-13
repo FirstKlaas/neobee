@@ -25,7 +25,7 @@ class NeoBeeScale
     float getWeight(uint8_t ntimes = 20, WeightMethod method = WeightMethod::MedianAverage);
 
     double getOffset();
-    void setOffset(const double offset);
+    void setOffset(const long offset);
     inline bool hasOffset() { return m_ctx.scale.hasOffset(); };
 
     float getFactor();

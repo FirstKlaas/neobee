@@ -93,8 +93,7 @@ async def new_hive_data(hive_data: HiveData, payload):
     temperature_inside = f100(payload[10:14])
     temperature_outside = f100(payload[14:18])
     logger.debug("Data: %s / %s / %s / %s", mac, weight, temperature_inside, temperature_outside)
-    from random import random
-    await hive_data.write_point(mac,random()*5+10,temperature_inside,random()*15+5)
+    await hive_data.write_point(mac,weight,temperature_inside,temperature_outside)
 
 async def handle_message(client: aio_mqtt.Client, hive_data: HiveData, loop):
     async for message in client.delivered_messages("#"):

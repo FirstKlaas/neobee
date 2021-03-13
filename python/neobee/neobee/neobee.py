@@ -31,7 +31,7 @@ def command_line():
     parser.add_argument("--mqtt-login", help="The mqtt login", type=str)
     parser.add_argument("--mqtt-password", help="The mqtt password", type=str)
 
-    parser.add_argument("--scale-offset", help="The scale offset", type=float)
+    parser.add_argument("--scale-offset", help="The scale offset", type=int)
     parser.add_argument("--scale-factor", help="The scale factor", type=float)
 
     parser.add_argument("--weight", help="The current weight", action="store_true")
@@ -56,8 +56,8 @@ def command_line():
                 print(".".join(format(x) for x in shell.version))
 
             if args.tare:
-                offset = shell.tare(args.count)[0]
-                print(f"Offset: {offset}")
+                offset, factor = shell.tare(args.count)
+                print(f"Offset: {offset} / Current Factor: {factor}")
 
                 if args.save:
                     shell.save_settings()

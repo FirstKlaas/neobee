@@ -306,20 +306,27 @@ class NeoBeeShell:
 
         return info
 
-    def _write_float(self, value: float, index: int = 0) -> None:
-        iValue = int(value * 100)
+    def _write_int(self, value: int, index: int = 0) -> None:
+        iValue = int(value)
         NEG_FLAG = (value < 0)
         if NEG_FLAG:
-            iValue *= -1
+            iValue = -1 * iValue
 
         self[index] = (iValue >> 24) & 0xFF
         self[index+1] = (iValue >> 16) & 0xFF
         self[index+2] = (iValue >> 8) & 0xFF
         self[index+3] = (iValue) & 0xFF
 
+        # set negative flag
         if NEG_FLAG:
             self[index] |= 0b10000000
 
+
+    def _write_float(self, value: float, index: int = 0) -> None:
+        self._write_int(int(value * 100))
+
+    def _read_ufloat(self, index: int = 0) -> float:
+        return self._read_uint(index) / 100.0
 
     def _read_float(self, index: int = 0) -> float:
         """
@@ -328,12 +335,18 @@ class NeoBeeShell:
         The highest bit of the first byte indicates
         wether the value is negative (1) or not (0).
         """
+        return self._read_int(index) / 100.0
+
+        
+    def _read_int(self, index:int=0) -> int:
         NEG_FLAG = self[0] & 0b10000000
         # Clear the negative flag
         value = (((self[index] & 0b01111111) << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3])
-        if NEG_FLAG:
-            return (-1 * value) / 100.0
-        return value / 100.0
+        return int((-1 * value) if NEG_FLAG else value)
+
+    def _read_uint(self, index:int=0) -> int:
+        value = ((self[index] << 24) | (self[index+1] << 16) | (self[index+2] << 8) | self[index+3])
+        return int(value)
 
     @property
     def method(self) -> RequestMethod:
@@ -369,7 +382,7 @@ class NeoBeeShell:
         self._send()
 
         if self.status == StatusCode.OK:
-            return self._read_float()
+            return self._read_uint()
         elif self.status == StatusCode.NOT_FOUND:
             return None
         else:
@@ -383,7 +396,7 @@ class NeoBeeShell:
         self._clearbuffer()
         self.method = RequestMethod.PUT
         self.command = CmdCode.SCALE_OFFSET
-        self._write_float(value)
+        self._write_int(value)
         self._send()
 
     @property
@@ -399,7 +412,7 @@ class NeoBeeShell:
         self.command = CmdCode.SCALE_FACTOR
         self._send()
         if self.status == StatusCode.OK:
-            return self._read_float()
+            return self._read_ufloat()
         elif self.status == StatusCode.NOT_FOUND:
             return None
         else:
@@ -410,8 +423,8 @@ class NeoBeeShell:
         if not self.connected:
             raise NotConnectedError("Not connected")
 
-        if value <= 0:
-            raise BadRequestError("Factor must be a positive value.")
+        #if value <= 0:
+        #    raise BadRequestError("Factor must be a positive value.")
 
         self._clearbuffer()
         self.method = RequestMethod.PUT
@@ -623,7 +636,7 @@ class NeoBeeShell:
         self.command = CmdCode.TARE
         self[0] = nr_times & 0xFF
         self._send()
-        offset = self._read_float()
+        offset = self._read_int()
         factor = self._read_float(index=4)
         return (offset, factor)
 
@@ -651,8 +664,8 @@ class NeoBeeShell:
         self[1] = ref_weight & 0xFF
         self[2] = count & 0xFF
         self._send()
-        offset = self._read_float()
-        factor = self._read_float(index=4)
+        offset = self._read_uint()
+        factor = self._read_ufloat(index=4)
         return (offset, factor)
 
     @property
