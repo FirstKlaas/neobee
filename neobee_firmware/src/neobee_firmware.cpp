@@ -150,7 +150,7 @@ void setup() {
         #ifdef DEBUG
         Serial.print("Going to deep sleep for ");
         Serial.print(ctx.getDeepSleepSeconds());
-        Serial.println(" seconds.");
+        Serial.println(" seconds. ");
         #endif
         mqtt.publishData(scale.getWeight(), temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
         delay(1000); // Needs a delay, so the message is sent.
