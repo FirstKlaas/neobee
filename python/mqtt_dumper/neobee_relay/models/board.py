@@ -1,6 +1,7 @@
 from tortoise.models import Model
 from tortoise.fields import CharField
 
+
 class BoardModel(Model):
 
     mac = CharField(pk=True, max_length=17, description="MAC address as primary key")

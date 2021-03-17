@@ -1,4 +1,4 @@
-CHECKFILES = neobee
+CHECKFILES = neobee_relay
 
 help:
 	@echo  "NeoBee platform development makefile"
@@ -42,6 +42,13 @@ build: ci
 	rm -fR dist/
 	python setup.py sdist bdist_wheel
 
-publish: build
+publish: ci
 	twine check ./dist/*
 	twine upload ./dist/*
+
+docker-build: ci
+	docker build -t firstklaas/neobee_relay .
+
+dockerhub: docker-build
+	docker push firstklaas/neobee_relay
+

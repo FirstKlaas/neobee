@@ -181,6 +181,20 @@ void setup() {
     #endif
 
 };
+boolean reconnectWiFi() {
+    uint8_t number_of_tries(0);
+    if (WiFi.isConnected()) return true;
+
+    WiFi.begin(ctx.wifi_network.ssid, ctx.wifi_network.password);
+    while (!WiFi.isConnected() && number_of_tries < 20) {
+        #ifdef DEBUG
+        Serial.print(".");
+        #endif
+        delay(100);
+        number_of_tries++;
+    }
+    return WiFi.isConnected();
+}
 
 void loop() {
     static unsigned long currentMillis;
@@ -197,29 +211,34 @@ void loop() {
         // Use a non blocking method to send
         // sensor data every 5 seconds
         if (millis() - currentMillis >= 5000) {
-            currentMillis = millis();
-            if (mqtt.isConnected()) {
-                #ifdef DEBUG
-                Serial.println("Measure, publish and delay");
-                #endif
-                /**
-                mqtt.publishData(
-                    scale.getWeight(),
-                    temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
-                **/
-                mqtt.publishData(
-                    scale.getWeight(),
-                    temperature.getCTemperatureByIndex(0),
-                    temperature.getCTemperatureByIndex(1));
-                    
-//                    temperature.getCTemperatureInside(),
-//                    temperature.getCTemperatureOutside());
-                mqtt.loop();
-                #ifdef DEBUG
-                Serial.print("Free Heap           : ");
-                Serial.print(ESP.getFreeHeap(),DEC);
-                Serial.println(" bytes");
-                #endif
+            // Check, if we are still connected.
+            if(reconnectWiFi()) {
+                mqtt.connect();
+                
+                currentMillis = millis();
+                if (mqtt.isConnected()) {
+                    #ifdef DEBUG
+                    Serial.println("Measure, publish and delay");
+                    #endif
+                    /**
+                    mqtt.publishData(
+                        scale.getWeight(),
+                        temperature.getCTemperatureByIndex(0), temperature.getCTemperatureByIndex(1));
+                    **/
+                    mqtt.publishData(
+                        scale.getWeight(),
+                        temperature.getCTemperatureByIndex(0),
+                        temperature.getCTemperatureByIndex(1));
+                        
+    //                    temperature.getCTemperatureInside(),
+    //                    temperature.getCTemperatureOutside());
+                    mqtt.loop();
+                    #ifdef DEBUG
+                    Serial.print("Free Heap           : ");
+                    Serial.print(ESP.getFreeHeap(),DEC);
+                    Serial.println(" bytes");
+                    #endif
+                }
             }
         } 
     };

@@ -12,6 +12,8 @@
 static const char AP_SSID[]  PROGMEM = "NeoBee";
 
 WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
+    if (WiFi.isConnected()) return WiFiMode::WIFI_STA;
+    
     WiFi.disconnect();
     WiFi.setAutoConnect(false);
     WiFi.setAutoReconnect(false);
