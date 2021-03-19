@@ -12,10 +12,18 @@ asyncpg==0.22.0
     # via -r requirements.in
 certifi==2020.12.5
     # via influxdb-client
+click==7.1.2
+    # via uvicorn
+fastapi==0.63.0
+    # via -r requirements.in
+h11==0.12.0
+    # via uvicorn
 influxdb-client==1.15.0
     # via -r requirements.in
 iso8601==0.1.14
     # via tortoise-orm
+pydantic==1.8.1
+    # via fastapi
 pypika==0.44.1
     # via tortoise-orm
 python-dateutil==2.8.1
@@ -32,12 +40,18 @@ six==1.15.0
     # via
     #   influxdb-client
     #   python-dateutil
+starlette==0.13.6
+    # via fastapi
 tortoise-orm==0.16.21
     # via -r requirements.in
 typing-extensions==3.7.4.3
-    # via aiosqlite
-urllib3==1.26.3
+    # via
+    #   aiosqlite
+    #   pydantic
+urllib3==1.26.4
     # via influxdb-client
+uvicorn==0.13.4
+    # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

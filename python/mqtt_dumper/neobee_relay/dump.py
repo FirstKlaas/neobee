@@ -36,6 +36,7 @@ async def create_or_update_board(payload):
     mac = ":".join([hex(b)[2:4].upper() for b in payload[:6]])
     logger.info("Board %s connected", mac)
 
+
 def f100(arr):
     """
     Decodes a four bytes encoded signed float
@@ -57,13 +58,13 @@ async def new_hive_data(payload):
     weight = f100(payload[6:10])
     temperature_inside = f100(payload[10:14])
     temperature_outside = f100(payload[14:18])
-    logger.info("-"*60)
+    logger.info("-" * 60)
     logger.info(f"Timestampe          : {datetime.now()}")
     logger.info(f"MAC                 : {mac}")
     logger.info(f"Weight              : {weight}")
     logger.info(f"Temperature Inside  : {temperature_inside}")
     logger.info(f"Temperature Outside : {temperature_outside}")
-    
+
 
 async def handle_message(client: aio_mqtt.Client, loop):
     async for message in client.delivered_messages("#"):

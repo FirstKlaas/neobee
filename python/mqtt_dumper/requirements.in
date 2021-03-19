@@ -3,3 +3,5 @@ tortoise-orm
 asyncpg
 influxdb-client
 python-dotenv
+uvicorn
+fastapi

@@ -14,23 +14,12 @@ from dotenv import load_dotenv
 from tortoise import Tortoise
 
 from .models.board import BoardModel
+from .models.measure import MeasurementModel
+
 from .influx import HiveData
+from .orm import init_models
 
 logger = logging.getLogger(__name__)
-
-
-async def init_models():
-    # Here we connect to a SQLite DB file.
-    # also specify the app name of "models"
-    # which contain models from "app.models"
-    logger.debug("Connecting to database")
-    await Tortoise.init(
-        db_url="postgres://neobee:neobee@192.168.178.49:5432/neobee",
-        modules={"models": ["neobee_relay.models.board"]},
-    )
-    # Generate the schema
-    logger.debug("Generating schema")
-    await Tortoise.generate_schemas()
 
 
 async def mqtt_connect_forever(client: aio_mqtt.Client) -> None:
@@ -62,15 +51,7 @@ async def create_or_update_board(payload):
     board_defaults["firmware"] = f"{payload[10]}.{payload[11]}.{payload[12]}"
     board_defaults["name"] = bytearray(payload[13 : 13 + index]).decode()
     logger.info("Data: %r", board_defaults)
-    board, created = await BoardModel.get_or_create(board_defaults, mac=mac)
-    if not created:
-        logger.info("Board already exists in database. Needs to be updated.")
-        board.firmware = board_defaults["firmware"]
-        board.name = board_defaults["name"]
-        board.ip = board_defaults["ip"]
-        await board.save()
-    else:
-        logger.info("Board new created in database: mac(%s), ip(%s)", mac, board.ip)
+    await BoardModel.update_or_create(board_defaults, mac=mac)
 
 
 def f100(arr):
@@ -96,6 +77,14 @@ async def new_hive_data(hive_data: HiveData, payload):
     temperature_outside = f100(payload[14:18])
     logger.debug("Data: %s / %s / %s / %s", mac, weight, temperature_inside, temperature_outside)
     await hive_data.write_point(mac, weight, temperature_inside, temperature_outside)
+
+    measurement_defaults = {
+        "weight": weight,
+        "temperature_inside": temperature_inside,
+        "temperature_outside": temperature_outside,
+    }
+    m = await MeasurementModel.update_or_create(measurement_defaults, mac=mac)
+    logger.info(m)
 
 
 async def handle_message(client: aio_mqtt.Client, hive_data: HiveData, loop):
