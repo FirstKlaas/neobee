@@ -25,7 +25,14 @@ logger = logging.getLogger(__name__)
 async def mqtt_connect_forever(client: aio_mqtt.Client) -> None:
     while True:
         try:
-            connect_result = await client.connect("broker.hivemq.com")
+            logger.debug("Connecting to host %s", os.getenv("MQTT_HOST", "broker.hivemq.com"))
+            connect_result = await client.connect(
+                os.getenv("MQTT_HOST", "broker.hivemq.com"),
+                port=int(os.getenv("MQTT_PORT", "1883")),
+                client_id="neobee_relay",
+                username=os.getenv("MQTT_LOGIN"),
+                password=os.getenv("MQTT_PASSWORD"),
+            )
             logger.debug("Connected")
             await client.subscribe(("/neobee/#", aio_mqtt.QOSLevel.QOS_1))
             logger.debug("Subscribed")

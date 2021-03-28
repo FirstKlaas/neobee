@@ -6,9 +6,7 @@ import aio_mqtt
 
 logger = logging.getLogger(__name__)
 
-class Broker(object):
 
+class Broker(object):
     def __init__(self, loop):
         aio
-
-

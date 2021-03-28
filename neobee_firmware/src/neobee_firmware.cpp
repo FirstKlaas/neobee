@@ -183,8 +183,16 @@ void setup() {
 };
 boolean reconnectWiFi() {
     uint8_t number_of_tries(0);
-    if (WiFi.isConnected()) return true;
+    if (WiFi.isConnected()) {
+        #ifdef DEBUG
+        Serial.println("Wifi still connected.");
+        #endif
+        return true;
+    }
 
+    #ifdef DEBUG
+    Serial.println("Wifi disconnected. Try to reconnect.");
+    #endif
     WiFi.begin(ctx.wifi_network.ssid, ctx.wifi_network.password);
     while (!WiFi.isConnected() && number_of_tries < 20) {
         #ifdef DEBUG

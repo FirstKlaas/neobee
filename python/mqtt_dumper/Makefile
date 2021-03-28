@@ -52,3 +52,5 @@ docker-build: ci
 dockerhub: docker-build
 	docker push firstklaas/neobee_relay
 
+run:
+	python run.py
