@@ -23,6 +23,8 @@ WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
     if(ctx.wifi_network.canConnect()) {
         uint8_t number_of_tries(0);
 
+        WiFi.setAutoConnect(true);
+        WiFi.setAutoReconnect(true);
         WiFi.mode(WIFI_STA);
 
         #ifdef DEBUG
@@ -79,6 +81,9 @@ WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
         Serial.println("No wifi information. Going directly into AP mode.");
         #endif
         WiFi.disconnect();
+        WiFi.setAutoConnect(false);
+        WiFi.setAutoReconnect(false);
+        
     };
 
 
@@ -93,5 +98,8 @@ WiFiMode setupWifi(Context& ctx, OperationMode& mode, NeoBeeLED& statusLed) {
     #endif 
 
     WiFi.mode(WIFI_AP);
+    WiFi.setAutoConnect(false);
+    WiFi.setAutoReconnect(false);
+        
     return (WiFi.softAP(FPSTR(AP_SSID)) ? WiFiMode::WIFI_AP : WiFiMode::WIFI_OFF);
 }
