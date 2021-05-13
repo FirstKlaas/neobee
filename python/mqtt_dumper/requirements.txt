@@ -22,8 +22,10 @@ influxdb-client==1.15.0
     # via -r requirements.in
 iso8601==0.1.14
     # via tortoise-orm
-pydantic==1.8.1
-    # via fastapi
+pydantic==1.8.2
+    # via
+    #   -r requirements.in
+    #   fastapi
 pypika==0.44.1
     # via tortoise-orm
 python-dateutil==2.8.1
