@@ -23,7 +23,9 @@ influxdb-client==1.15.0
 iso8601==0.1.14
     # via tortoise-orm
 pydantic==1.8.1
-    # via fastapi
+    # via
+    #   -r requirements.in
+    #   fastapi
 pypika==0.44.1
     # via tortoise-orm
 python-dateutil==2.8.1
@@ -48,7 +50,7 @@ typing-extensions==3.7.4.3
     # via
     #   aiosqlite
     #   pydantic
-urllib3==1.26.4
+urllib3==1.26.5
     # via influxdb-client
 uvicorn==0.13.4
     # via -r requirements.in
