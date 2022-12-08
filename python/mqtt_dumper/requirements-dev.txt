@@ -28,7 +28,7 @@ black==20.8b1 ; python_version >= "3.8"
     # via -r requirements-dev.in
 bleach==3.3.0
     # via readme-renderer
-certifi==2020.12.5
+certifi==2022.12.7
     # via
     #   -r requirements.txt
     #   influxdb-client
@@ -70,10 +70,10 @@ filelock==3.0.12
     # via
     #   tox
     #   virtualenv
-flake8-isort==4.0.0
-    # via -r requirements-dev.in
 flake8==3.9.0
     # via flake8-isort
+flake8-isort==4.0.0
+    # via -r requirements-dev.in
 gitdb==4.0.5
     # via gitpython
 gitpython==3.1.14
@@ -116,12 +116,12 @@ mccabe==0.6.1
     # via
     #   flake8
     #   pylint
+mypy==0.812
+    # via -r requirements-dev.in
 mypy-extensions==0.4.3
     # via
     #   black
     #   mypy
-mypy==0.812
-    # via -r requirements-dev.in
 nose2==0.10.0
     # via -r requirements-dev.in
 packaging==20.9
@@ -190,13 +190,13 @@ readme-renderer==29.0
     # via twine
 regex==2021.3.17
     # via black
-requests-toolbelt==0.9.1
-    # via twine
 requests==2.25.1
     # via
     #   coveralls
     #   requests-toolbelt
     #   twine
+requests-toolbelt==0.9.1
+    # via twine
 rfc3986==1.4.0
     # via twine
 rx==3.1.1
